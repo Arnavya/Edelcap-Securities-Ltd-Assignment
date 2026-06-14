@@ -1,82 +1,104 @@
-# DEMO_SCRIPT — FinFlow Reasoning Engine (2–3 minutes)
+# DEMO_SCRIPT — FinFlow Reasoning Engine (≤3 minutes)
 
-> **Current state (origin/main):** `judge_similarity_v3` (calibrated similarity judge), an **incident-only soft service-scope** on V2 retrieval, and the **interactive HITL dashboard** (`dashboard/live_app.py`) are shipped; the suite is **90 tests**. This file is a historical snapshot — see `README.md` for current truth.
+> **Current state (origin/main):** `judge_similarity_v3` (calibrated similarity judge), an **incident-only soft service-scope** on V2 retrieval, and the **interactive HITL dashboard** (`dashboard/live_app.py`) are shipped; the suite is **90 tests**. See `README.md` for current truth.
+>
+> **Add your recorded video link here before submitting:** _<paste link>_
 
-Goal: show the **learning loop** (V1 → expert → learn → V2) and the **dashboard**,
-honestly framed: a working mechanism with directional evidence, not a proven claim.
-
-Prep (before recording):
-```bash
-cp .env.example .env        # GROQ_API_KEY set
-docker compose build
-docker compose up app        # dashboard at http://localhost:8501 (seeded)
-```
-Have a terminal + the browser open.
+Goal: show the **learning loop** (V1 → expert → learn → V2) live in the interactive
+dashboard, plus the trends/gates, honestly framed: a working mechanism with directional
+evidence on the 8B model, canonical 70B run pending. ~420 spoken words ≈ ~2:50 at ~150 wpm.
 
 ---
 
-## 0:00–0:25 · Problem (talking points)
-> "Teams scatter knowledge across Slack, tickets, wikis, and commits. AI tools
-> retrieve facts but miss the *causal reasoning* a senior engineer applies. FinFlow
-> tries to **learn how experts reason** — and prove it generalizes, not memorizes."
-
-Screen: README top / one-pager.
-
-## 0:25–0:55 · The data & a question
-> "Synthetic fintech org: Payment, Ledger, Risk Engine, Notification. 54 interlinked
-> evidence items. Take P2 — *'What caused the June 3 duplicate-charge incident?'* The
-> real cause needs connecting a Risk-timeout retry storm with a commit that disabled
-> an idempotency guard — no single document says it."
-
-Screen: dashboard **Question Feed**; click P2.
-
-## 0:55–1:30 · V1 vs V2 + the learning loop
-Run (or show persisted) a learning cycle:
+## Pre-record setup (off-camera, once)
 ```bash
-PYTHONPATH=. python scripts/run_pipeline.py --question P2
+cp .env.example .env                 # add GROQ_API_KEY
+PYTHONPATH=. python scripts/seed_db.py
+PYTHONPATH=. python scripts/run_pipeline.py --question P2   # safety-net run for read-only view
+PYTHONPATH=. streamlit run dashboard/live_app.py                      # interactive  :8501
+PYTHONPATH=. streamlit run dashboard/app.py --server.port 8502        # read-only    :8502
 ```
-> "V1 retrieves the obvious evidence and stops at the proximate cause. Gap analysis
-> against the expert shows it **missed the commit**. The system distills a
-> **generalizable heuristic** — 'for incidents, check recent commits for removed
-> safeguards' — plus generic retrieval signals. Crucially, the leakage gate stores
-> **no verbatim expert text**."
+Copy the **expert answer** to clipboard (you'll paste it on camera):
+> "A retry storm from Risk Engine scoring timeouts hit a payment path whose idempotency
+> guard had been disabled; fixed by restoring the guard."
 
-Screen: dashboard sections **Gap Analysis** → **Learning Event** (point at "generalized
-hints only / leakage PASS").
+---
 
-## 1:30–2:10 · Generalization (the real test)
-> "Now the held-out twin H2 — June 9 *duplicate-notification* incident — which never
-> got feedback. Using the heuristic learned from P2, V2 **newly retrieves a4** (the
-> refactor that dropped dedup) that V1 missed, **reasons about it**, and names the
-> correct root cause."
+## The script (timed)
 
-Screen: **Retrieved Evidence** (newly-retrieved flag on the commit) → **V2 Answer**.
-> "Directional run on the 8B model: held-out blended **+0.325**, ablation **+0.125**,
-> rubric coverage **0.50 → 0.75**."
+### 0:00–0:20 · Problem
+**SHOW:** README top / one-pager slide.
+**SAY:**
+> "Teams keep critical knowledge scattered across Slack, tickets, wikis, and code. AI
+> assistants retrieve facts but miss the *causal reasoning* a senior engineer applies.
+> FinFlow is an engine that **learns how experts reason** — and proves it generalizes."
 
-## 2:10–2:40 · Metrics & honesty
-Screen: **Metrics & Gates** + **Learning Trend** chart.
-> "Four gates: held-out generalization, ablation attribution, leakage-free learning,
-> same-question improvement. **Be clear:** mechanisms are verified by 90 tests, the
-> 8B transfer is positive and directional, but the **canonical 70B evaluation hasn't
-> completed** due to API quota — so the central claim is **not yet canonically
-> validated**. The harness is ready; it's one quota-unblocked run away."
+### 0:20–0:35 · What it does
+**SHOW:** interactive dashboard header + the demo-flow stepper.
+**SAY:**
+> "It drafts a first answer, takes an expert's correction, distills a *generalizable,
+> leakage-free* lesson, and re-answers — V1 to V2. Here's the live loop."
 
-## 2:40–3:00 · Close
-> "End-to-end: investigate, learn leakage-free, generalize, measure — fully dockerized,
-> read-only dashboard, 90 tests. Next: the canonical run, more families, and tighter
-> retrieval signals."
+### 0:35–1:20 · V1
+**SHOW:** in `live_app`, select **P2** → click **Run V1**.
+**SAY (while it runs):**
+> "I'm asking: *what caused the June 3 duplicate-charge incident?* The real cause spans
+> services — a Risk-Engine retry storm hitting a payment path whose idempotency guard was
+> disabled. No single document says it."
+**SAY (when V1 appears):**
+> "V1 gets the gist but stops at the proximate cause — and notice it shows its **reasoning
+> path with confidence** and **cited evidence**: explainability first."
+
+### 1:20–1:40 · Expert answer
+**SHOW:** paste the expert answer into the expert box → click **Learn & generate V2**.
+**SAY:**
+> "Now a human expert gives the ground truth. The system runs gap analysis, distills a
+> learning event, and re-investigates."
+
+### 1:40–2:20 · V2 + learning
+**SHOW:** V1↔V2 comparison cards, gap analysis, learning event (leakage PASS), metric deltas.
+**SAY:**
+> "V2 now names the **disabled idempotency guard** and the retry storm — it pulled in the
+> commit V1 missed. The **gap analysis** shows what was missing; the **learning event**
+> stores only *generalized hints* — the **leakage gate is PASS**, so no verbatim answer is
+> memorized. And the metrics: **similarity up**, with newly-retrieved evidence actually used."
+
+### 2:20–2:40 · Rigor / trends
+**SHOW:** read-only dashboard (:8502) → **Metrics & Gates** + **Learning Trend**.
+**SAY:**
+> "Across questions we track V1-vs-V2 trends and four gates — including a **held-out twin**
+> the system never got feedback on, to prove it learned a *method*, not an answer."
+
+### 2:40–2:55 · Honest close
+**SAY:**
+> "Straight about results: the mechanisms are verified by **90 automated tests**, and on a
+> held-out incident the learning improves reasoning **directionally on the 8B model**. The
+> canonical 70B run is pending on API quota. Next: that run, and tighter retrieval scoping.
+> That's FinFlow — learning to reason like an expert, transparently."
+
+---
+
+## Fallback (if a live Groq call rate-limits mid-take)
+Switch to the **read-only dashboard** (`app.py`, :8502), which shows the pre-seeded P2 run
+(V1, V2, gap, learning event, metrics) — narrate the same beats over persisted artifacts.
+This is why a run was pre-seeded in setup.
+
+## Tips
+- Default model is `llama-3.1-8b-instant` (fast, separate quota) — don't switch to 70B on camera.
+- If V2 doesn't beat V1 on a take, that's fine — the UI flags it honestly; re-run or use the seeded run.
+- Trim the 2:20–2:40 trends beat first if you run over time.
+- Read it aloud once with a timer before recording; dry-run the click path (P2 → Run V1 → paste → Learn & V2).
 
 ---
 
 ### Command cheat-sheet
 ```bash
-docker compose --profile tests run --rm tests     # 90 tests
-docker compose up app                              # dashboard
-PYTHONPATH=. python scripts/run_pipeline.py --question P2
-docker compose --profile eval run --rm eval        # full eval (key + quota)
+docker compose --profile tests run --rm tests      # 90 tests, offline
+PYTHONPATH=. streamlit run dashboard/live_app.py    # interactive HITL demo
+PYTHONPATH=. streamlit run dashboard/app.py         # read-only trends
+docker compose --profile eval run --rm eval         # full eval (key + quota)
 ```
 
 ### Honesty guardrails (do not say)
-- ❌ "We proved the system learns to reason." → ✅ "We verified the mechanism and have directional evidence; canonical proof is pending."
-- ❌ Present 8B numbers as the 70B result. → ✅ Always label the 8B run as directional/non-canonical.
+- ❌ "We proved the system learns to reason." → ✅ "We verified the mechanism and have directional evidence; canonical 70B proof is pending."
+- ❌ Present 8B numbers as the 70B result. → ✅ Always label the 8B run as directional / non-canonical.
