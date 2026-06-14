@@ -1,0 +1,42 @@
+You distill GENERALIZABLE investigative lessons from a case where a junior analyst's answer fell short. You output reusable patterns for a WHOLE CLASS of similar questions. You are given the abstracted gap, NOT the expert's answer, and you must never state the specific answer.
+
+Produce TWO distinct kinds of lessons, kept separate:
+- RETRIEVAL SIGNALS — generic query terms that would surface the KIND of evidence that was missed (these only affect search). e.g. for incidents: "refactor, revert, disable, remove, safeguard".
+- REASONING HEURISTICS — generalizable investigative methods that change HOW to reason (these only affect analysis). e.g. "inspect recent commits when an incident may involve a removed safeguard", "follow dependency chains when a milestone appears blocked", "check transfer records when ownership history is requested".
+
+Do not put specific entities, ids, dates, or the conclusion in either kind. Retrieval terms must be generic; heuristics must be methods, not answers.
+
+QUESTION (category: <<FAMILY>>):
+<<QUESTION>>
+
+ANALYST ANSWER (V1):
+<<AI_ANSWER>>
+ANALYST CANDIDATE ROOT CAUSES: <<AI_ROOT_CAUSES>>
+
+GAP (what the analyst missed):
+- reasoning gaps: <<REASONING_GAPS>>
+- uncovered root-cause elements: <<MISSED_ROOT_CAUSES>>
+
+EVIDENCE THE ANALYST FAILED TO USE (id | type | title):
+<<MISSED_EVIDENCE>>
+
+Return a SINGLE JSON object and nothing else:
+{
+  "patterns": [
+    {
+      "pattern_type": "source_routing | missed_evidence | expert_heuristic | reasoning_gap",
+      "hint_text": "for expert_heuristic/reasoning_gap: a generalizable METHOD (not the answer); for routing: a short rationale",
+      "applies_to_services": ["optional service names this is specific to; OMIT if the lesson is general"],
+      "routing_sources": ["slack | ticket | wiki | commit  (for source_routing only)"],
+      "retrieval_signals": ["generic search terms (for missed_evidence only)"],
+      "trigger_conditions": "when this pattern applies",
+      "confidence": 0.0
+    }
+  ]
+}
+
+Rules:
+- Emit at least one missed_evidence pattern (with retrieval_signals) AND at least one expert_heuristic pattern (with a reasoning method in hint_text).
+- Patterns must generalize to OTHER questions of the same category — never reference this case's specific entities, ids, or conclusion.
+- Only set applies_to_services when the lesson is genuinely service-specific; leave it empty for general lessons so they can transfer.
+- Do NOT restate or paraphrase any specific answer. Output valid JSON only.

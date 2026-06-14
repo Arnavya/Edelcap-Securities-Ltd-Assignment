@@ -1,0 +1,110 @@
+[
+  {
+    "id": "P1",
+    "text": "Why did the May payment-settlement release (v2.5) slip about two weeks?",
+    "family": "release_delay",
+    "family_id": "fam-release",
+    "is_held_out": false,
+    "requires_cross_source": true,
+    "asked_by": "Nina Park",
+    "channel": "#ask-eng",
+    "timestamp": "2026-06-11T09:00:00Z",
+    "tags": ["release", "settlement", "v2.5"]
+  },
+  {
+    "id": "P2",
+    "text": "What caused the June 3 duplicate-charge incident?",
+    "family": "prod_incident",
+    "family_id": "fam-incident",
+    "is_held_out": false,
+    "requires_cross_source": true,
+    "asked_by": "Nina Park",
+    "channel": "#ask-eng",
+    "timestamp": "2026-06-11T09:05:00Z",
+    "tags": ["incident", "duplicate-charge", "payment"]
+  },
+  {
+    "id": "P3",
+    "text": "What's blocking the Q3 fraud-scoring milestone?",
+    "family": "milestone_blockage",
+    "family_id": "fam-milestone",
+    "is_held_out": false,
+    "requires_cross_source": true,
+    "asked_by": "Devin Okafor",
+    "channel": "#ask-eng",
+    "timestamp": "2026-06-11T09:10:00Z",
+    "tags": ["milestone", "fraud-scoring", "q3"]
+  },
+  {
+    "id": "P4",
+    "text": "Who owns the Risk Engine now, and who owned it before?",
+    "family": "service_ownership",
+    "family_id": "fam-ownership-risk",
+    "is_held_out": false,
+    "requires_cross_source": true,
+    "asked_by": "Nina Park",
+    "channel": "#ask-eng",
+    "timestamp": "2026-06-11T09:15:00Z",
+    "tags": ["ownership", "risk-engine"]
+  },
+  {
+    "id": "P5",
+    "text": "Why did FinFlow choose asynchronous settlement in the Ledger over synchronous?",
+    "family": "design_decision",
+    "family_id": "fam-design-async",
+    "is_held_out": false,
+    "requires_cross_source": true,
+    "asked_by": "Devin Okafor",
+    "channel": "#ask-eng",
+    "timestamp": "2026-06-11T09:20:00Z",
+    "tags": ["design-decision", "settlement", "async"]
+  },
+  {
+    "id": "P6",
+    "text": "Who is responsible for the Payment-to-Ledger reconciliation boundary?",
+    "family": "service_ownership",
+    "family_id": "fam-ownership-recon",
+    "is_held_out": false,
+    "requires_cross_source": true,
+    "asked_by": "Devin Okafor",
+    "channel": "#ask-eng",
+    "timestamp": "2026-06-11T09:25:00Z",
+    "tags": ["ownership", "reconciliation", "boundary"]
+  },
+  {
+    "id": "H1",
+    "text": "Why is the June notification-batching release behind schedule?",
+    "family": "release_delay",
+    "family_id": "fam-release",
+    "is_held_out": true,
+    "requires_cross_source": true,
+    "asked_by": "Nina Park",
+    "channel": "#ask-eng",
+    "timestamp": "2026-06-12T09:00:00Z",
+    "tags": ["release", "notification", "batching"]
+  },
+  {
+    "id": "H2",
+    "text": "What caused the June 9 duplicate-notification incident?",
+    "family": "prod_incident",
+    "family_id": "fam-incident",
+    "is_held_out": true,
+    "requires_cross_source": true,
+    "asked_by": "Nina Park",
+    "channel": "#ask-eng",
+    "timestamp": "2026-06-12T09:05:00Z",
+    "tags": ["incident", "duplicate-notification", "notification"]
+  },
+  {
+    "id": "H3",
+    "text": "What's blocking the Q3 settlement-reconciliation milestone?",
+    "family": "milestone_blockage",
+    "family_id": "fam-milestone",
+    "is_held_out": true,
+    "requires_cross_source": true,
+    "asked_by": "Devin Okafor",
+    "channel": "#ask-eng",
+    "timestamp": "2026-06-12T09:10:00Z",
+    "tags": ["milestone", "reconciliation", "q3"]
+  }
+]

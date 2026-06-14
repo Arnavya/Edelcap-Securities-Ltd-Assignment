@@ -1,0 +1,51 @@
+# FinFlow Reasoning Engine — three modes from one image.
+#   docker compose up app                      # dashboard at http://localhost:8501
+#   docker compose --profile eval run --rm eval     # full evaluation (needs GROQ_API_KEY)
+#   docker compose --profile tests run --rm tests   # test suite (offline, no key)
+#
+# Secrets come only from the environment / .env — nothing is baked into the image.
+
+services:
+  app:
+    build: .
+    image: finflow-reasoning-engine:latest
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      - FINFLOW_DB=/data/finflow.db
+    ports:
+      - "8501:8501"
+    volumes:
+      - finflow-db:/data
+    command: ["dashboard"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8501/_stcore/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  eval:
+    build: .
+    image: finflow-reasoning-engine:latest
+    profiles: ["eval"]
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      - FINFLOW_DB=/data/finflow.db
+    volumes:
+      - finflow-db:/data
+    command: ["eval"]
+
+  tests:
+    build: .
+    image: finflow-reasoning-engine:latest
+    profiles: ["tests"]
+    environment:
+      - FINFLOW_PROVIDER=mock   # suite is fully offline; no key required
+    command: ["tests", "-q"]
+
+volumes:
+  finflow-db:

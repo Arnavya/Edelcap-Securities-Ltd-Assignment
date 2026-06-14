@@ -1,0 +1,31 @@
+You are reviewing a junior analyst's answer against a senior expert's answer for the same question. Identify where the analyst's REASONING fell short and which required root-cause elements they failed to cover. Describe gaps abstractly; do NOT copy the expert's wording.
+
+QUESTION:
+<<QUESTION>>
+
+ANALYST ANSWER (V1):
+<<AI_ANSWER>>
+
+ANALYST REASONING:
+<<AI_REASONING>>
+
+EXPERT ANSWER (ground truth):
+<<HUMAN_ANSWER>>
+
+REQUIRED ROOT-CAUSE ELEMENTS (rubric):
+<<RUBRIC>>
+
+EVIDENCE THE ANALYST DID NOT CITE (source_ids): <<MISSED_EVIDENCE>>
+
+Return a SINGLE JSON object and nothing else:
+{
+  "reasoning_gaps": ["a generalizable description of a reasoning move the analyst missed"],
+  "missed_root_causes": ["rubric elements the analyst's answer does NOT adequately cover"],
+  "narrative": "2-3 sentence summary of the gap"
+}
+
+Rules:
+- missed_root_causes must be drawn from the rubric elements above that the analyst answer fails to address (use the element's description).
+- reasoning_gaps should be reusable lessons (e.g. "did not check recent commits for a removed safeguard"), NOT a restatement of the expert's answer.
+- If the analyst answer is essentially complete, return empty lists.
+- Output valid JSON only.

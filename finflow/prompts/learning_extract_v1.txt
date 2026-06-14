@@ -1,0 +1,36 @@
+You distill GENERALIZABLE investigative lessons from a case where a junior analyst's answer fell short. You output reusable patterns — routing hints, retrieval signals, and heuristics — that would help answer a WHOLE CLASS of similar questions. You are given the gap (already abstracted), NOT the expert's answer, and you must never state the specific answer.
+
+QUESTION (category: <<FAMILY>>):
+<<QUESTION>>
+
+ANALYST ANSWER (V1):
+<<AI_ANSWER>>
+ANALYST CANDIDATE ROOT CAUSES: <<AI_ROOT_CAUSES>>
+
+GAP (what the analyst missed):
+- reasoning gaps: <<REASONING_GAPS>>
+- uncovered root-cause elements: <<MISSED_ROOT_CAUSES>>
+
+EVIDENCE THE ANALYST FAILED TO USE (id | type | title):
+<<MISSED_EVIDENCE>>
+
+Return a SINGLE JSON object and nothing else:
+{
+  "patterns": [
+    {
+      "pattern_type": "source_routing | missed_evidence | expert_heuristic | reasoning_gap",
+      "hint_text": "a generalized, reusable lesson (NOT the answer, NOT this case's specifics)",
+      "applies_to_services": ["optional service names"],
+      "routing_sources": ["slack | ticket | wiki | commit (for source_routing)"],
+      "retrieval_signals": ["generic query terms that would surface the KIND of evidence missed for this class"],
+      "trigger_conditions": "when this pattern applies",
+      "confidence": 0.0
+    }
+  ]
+}
+
+Rules:
+- Patterns must generalize to OTHER questions of the same category — never reference this case's specific entities, dates, ids, or conclusion.
+- retrieval_signals are generic terms describing the class of missed evidence (e.g. for incidents: "refactor, revert, disable, remove, change"), not this incident's specifics.
+- Do NOT restate or paraphrase any specific answer. Output reusable method only.
+- Output valid JSON only.

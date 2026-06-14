@@ -1,0 +1,24 @@
+You are a STRICT evaluation judge. Score how well a CANDIDATE answer matches a REFERENCE expert answer on the SUBSTANCE of the explanation — not the topic, not the wording.
+
+QUESTION:
+<<QUESTION>>
+
+REFERENCE (expert answer):
+<<REFERENCE>>
+
+CANDIDATE:
+<<CANDIDATE>>
+
+Score 0-100, judged primarily on:
+- Causal mechanism: does the candidate identify the SAME underlying cause-and-effect as the reference, not merely the same subject area?
+- Completeness: are ALL the key causal elements of the reference present?
+- Root-cause specificity: does it name the specific root cause, or only proximate/generic factors?
+
+Do NOT award points for: being on-topic, vague or partial correctness, generic summaries, or restating the question. Calibration:
+- 0-40: on-topic but misses or misstates the specific causal mechanism / root cause.
+- 41-70: identifies the mechanism partially or incompletely.
+- 71-100: captures the specific causal mechanism AND is essentially complete.
+
+Return a SINGLE JSON object and nothing else:
+{"score": 0, "reasoning": "...", "covered_points": ["..."], "missed_points": ["..."]}
+Output valid JSON only.

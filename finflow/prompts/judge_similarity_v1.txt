@@ -1,0 +1,16 @@
+You are an evaluation judge. Score how well a CANDIDATE answer matches a REFERENCE expert answer in MEANING and COMPLETENESS — not wording.
+
+QUESTION:
+<<QUESTION>>
+
+REFERENCE (expert answer):
+<<REFERENCE>>
+
+CANDIDATE:
+<<CANDIDATE>>
+
+Score = the percentage (0-100) of the reference's substantive claims that the candidate correctly conveys. Penalize contradictions. Do NOT reward verbose restatement or matching wording per se.
+
+Return a SINGLE JSON object and nothing else:
+{"score": 0, "reasoning": "...", "covered_points": ["..."], "missed_points": ["..."]}
+Output valid JSON only.

@@ -1,0 +1,163 @@
+[
+  {
+    "question_id": "P1",
+    "answer_text": "The v2.5 settlement release slipped about two weeks because a settlement idempotency bug (LED-412) was found in staging: the settlement path could post a charge twice on retry. The team deliberately held the release (PAY-501 was blocked-by LED-412) until the fix was merged and verified in staging (commit a9), then cut the release two weeks past the original target.",
+    "root_causes": [
+      "Settlement idempotency bug LED-412 discovered in staging",
+      "Release deliberately held until the fix was verified"
+    ],
+    "key_source_ids": ["slack:rel-may-settlement", "ticket:PAY-501", "ticket:LED-412", "commit:a9"],
+    "root_cause_rubric": [
+      {"id": "RC1", "description": "The release was deliberately held/delayed, not cancelled or de-scoped"},
+      {"id": "RC2", "description": "Names the specific blocker: the settlement idempotency bug (LED-412)"},
+      {"id": "RC3", "description": "The bug was caught in staging/testing before shipping"},
+      {"id": "RC4", "description": "Unblock condition was the fix being merged and verified (commit a9)"}
+    ],
+    "expert": "Maya Chen",
+    "created_at": "2026-06-11T12:00:00Z"
+  },
+  {
+    "question_id": "P2",
+    "answer_text": "The June 3 duplicate charges resulted from a retry storm hitting an unprotected settlement path. Risk Engine scoring timeouts under load caused the payment path to retry (RISK-220 / commit a3). Those retries landed on a settlement hot path whose idempotency guard had recently been disabled for performance (commit a1); with the guard off, retried settlements were no longer deduplicated and charges posted twice. It was resolved by reverting that change to re-enable the check (PAY-540 / commit a15).",
+    "root_causes": [
+      "Risk Engine timeouts caused the payment path to retry (RISK-220 / a3)",
+      "Idempotency guard disabled on the settlement hot path (commit a1)",
+      "With the guard off, retries were no longer deduplicated, causing duplicate charges"
+    ],
+    "key_source_ids": ["slack:inc-jun3-charge", "ticket:PAY-530", "ticket:RISK-220", "commit:a3", "commit:a1", "commit:a15"],
+    "root_cause_rubric": [
+      {"id": "RC1", "description": "Identifies the retry storm from Risk Engine timeouts (RISK-220 / a3)"},
+      {"id": "RC2", "description": "Identifies that the idempotency guard was disabled in the payment path (commit a1)"},
+      {"id": "RC3", "description": "Explains the mechanism: with the guard removed, retried charges were no longer deduplicated"},
+      {"id": "RC4", "description": "Identifies the fix: revert / re-enable the guard (PAY-540 / a15)"}
+    ],
+    "expert": "Maya Chen",
+    "created_at": "2026-06-11T12:05:00Z"
+  },
+  {
+    "question_id": "P3",
+    "answer_text": "The Q3 fraud-scoring milestone (RISK-240) is blocked by a cross-team dependency: it cannot begin until the Ledger historical data export (LED-430), owned by Team Books, is delivered. The export is still in progress, so Team Sentinel is idle on the model work and has flagged the dependency in standup and on the roadmap.",
+    "root_causes": [
+      "Cross-team dependency on the Ledger historical export (LED-430)",
+      "The export is incomplete / still in progress"
+    ],
+    "key_source_ids": ["wiki:q3-roadmap", "ticket:RISK-240", "ticket:LED-430", "slack:standup-risk"],
+    "root_cause_rubric": [
+      {"id": "RC1", "description": "Identifies that the milestone is blocked, not merely in progress"},
+      {"id": "RC2", "description": "Names the blocking dependency: the Ledger historical export (LED-430)"},
+      {"id": "RC3", "description": "Recognizes it is a cross-team dependency (Books owns LED-430; Sentinel owns RISK-240)"},
+      {"id": "RC4", "description": "Notes the dependency is incomplete / still in progress"}
+    ],
+    "expert": "Sofia Alvarez",
+    "created_at": "2026-06-11T12:10:00Z"
+  },
+  {
+    "question_id": "P4",
+    "answer_text": "The Risk Engine is currently owned by Team Sentinel, led by Sofia Alvarez. It was previously owned by Team Pay; ownership was transferred to the newly formed Team Sentinel around February 2026 (OWN-100). Team Pay retained only the payment-side scoring-client integration.",
+    "root_causes": [
+      "Current owner: Team Sentinel (Sofia Alvarez)",
+      "Previous owner: Team Pay",
+      "Ownership transferred around February 2026 (OWN-100)"
+    ],
+    "key_source_ids": ["wiki:ownership-matrix", "ticket:OWN-100", "slack:ownership-risk-transfer"],
+    "root_cause_rubric": [
+      {"id": "RC1", "description": "Current owner is Team Sentinel (Sofia Alvarez)"},
+      {"id": "RC2", "description": "Previous owner was Team Pay"},
+      {"id": "RC3", "description": "Ownership was transferred (OWN-100), around February 2026"}
+    ],
+    "expert": "Maya Chen",
+    "created_at": "2026-06-11T12:15:00Z"
+  },
+  {
+    "question_id": "P5",
+    "answer_text": "FinFlow chose asynchronous settlement over synchronous to increase throughput and reduce payment latency: synchronous writes coupled payment latency to ledger-write latency and capped throughput. The accepted tradeoff is an eventual-consistency window between charge and ledger entry, plus a double-posting risk on retry. That risk was mitigated by making settlement carry idempotency keys (ADR-004), which was treated as a hard requirement of the async design.",
+    "root_causes": [
+      "Async chosen for throughput / lower payment latency",
+      "Alternative considered was synchronous settlement",
+      "Tradeoff: an eventual-consistency window",
+      "Double-posting risk mitigated by idempotency keys (ADR-004)"
+    ],
+    "key_source_ids": ["wiki:adr-001-async-settlement", "slack:design-async-settlement", "wiki:adr-004-ledger-idempotency", "commit:a6"],
+    "root_cause_rubric": [
+      {"id": "RC1", "description": "Decision: async settlement chosen for throughput / scalability"},
+      {"id": "RC2", "description": "Names the alternative considered: synchronous settlement"},
+      {"id": "RC3", "description": "Identifies the tradeoff: an eventual-consistency window"},
+      {"id": "RC4", "description": "Identifies the mitigation: idempotency keys (ADR-004)"}
+    ],
+    "expert": "Raj Patel",
+    "created_at": "2026-06-11T12:20:00Z"
+  },
+  {
+    "question_id": "P6",
+    "answer_text": "There is no single owner for the Payment-to-Ledger reconciliation boundary. The ownership matrix marks it TBD/shared, and the #arch debate shows neither Team Pay nor Team Books has claimed it — 'shared' has effectively meant 'nobody'. This unresolved ownership is exactly why the reconciliation milestone (LED-450) is stalled at a stub.",
+    "root_causes": [
+      "The reconciliation boundary has no clear owner (TBD/contested)",
+      "The ownership matrix marks it TBD/shared",
+      "The design debate leaves it unresolved",
+      "This blocks the reconciliation milestone (LED-450)"
+    ],
+    "key_source_ids": ["wiki:ownership-matrix", "slack:recon-boundary", "ticket:LED-450", "commit:a14"],
+    "root_cause_rubric": [
+      {"id": "RC1", "description": "Recognizes the boundary has no single/clear owner (TBD/contested)"},
+      {"id": "RC2", "description": "Cites that the ownership matrix marks it TBD/shared"},
+      {"id": "RC3", "description": "Cites the unresolved design debate (recon-boundary)"},
+      {"id": "RC4", "description": "Connects the unassigned ownership to the stalled reconciliation work (LED-450)"}
+    ],
+    "expert": "Raj Patel",
+    "created_at": "2026-06-11T12:25:00Z"
+  },
+  {
+    "question_id": "H1",
+    "answer_text": "The June notification-batching release (NOT-300) is behind schedule because the team was pulled onto an urgent deduplication fix (NOT-320) following the June 9 duplicate-notification incident. The delay is due to reprioritization after the incident, not a defect in the batching feature itself; batching resumes once NOT-320 ships.",
+    "root_causes": [
+      "Team reprioritized onto the Jun 9 dedup fix (NOT-320)",
+      "Batching work (NOT-300) was paused",
+      "Delay is reprioritization, not a code defect"
+    ],
+    "key_source_ids": ["slack:rel-jun-notif-batch", "ticket:NOT-300", "ticket:NOT-320", "commit:a5"],
+    "root_cause_rubric": [
+      {"id": "RC1", "description": "Identifies the batching release is behind/delayed"},
+      {"id": "RC2", "description": "Cause: the team was pulled onto the Jun 9 dedup fix (NOT-320)"},
+      {"id": "RC3", "description": "Identifies the affected work as the batching ticket (NOT-300)"},
+      {"id": "RC4", "description": "Recognizes it is reprioritization after the incident, not a code defect"}
+    ],
+    "expert": "Tom Nguyen",
+    "created_at": "2026-06-12T12:00:00Z"
+  },
+  {
+    "question_id": "H2",
+    "answer_text": "The June 9 duplicate notifications happened because the notification event bus is at-least-once (ADR-003), so the consumer must deduplicate redeliveries — but a recent consumer refactor (commit a4) had dropped the dedup step. With dedup gone, every redelivery was sent as a duplicate. It was fixed by re-adding event-id deduplication to the consumer (NOT-320 / commit a5).",
+    "root_causes": [
+      "The event bus is at-least-once, requiring consumer dedup (ADR-003)",
+      "A recent refactor dropped the dedup step (commit a4)",
+      "Redeliveries were no longer collapsed, causing duplicate notifications"
+    ],
+    "key_source_ids": ["slack:inc-jun9-notif", "ticket:NOT-310", "wiki:adr-003-notif-eventbus", "commit:a4", "commit:a5"],
+    "root_cause_rubric": [
+      {"id": "RC1", "description": "Identifies that the at-least-once bus requires the consumer to dedup (ADR-003)"},
+      {"id": "RC2", "description": "Identifies that dedup was dropped in a recent refactor (commit a4)"},
+      {"id": "RC3", "description": "Explains the mechanism: at-least-once plus no dedup yields duplicates"},
+      {"id": "RC4", "description": "Identifies the fix: re-add dedup (NOT-320 / a5)"}
+    ],
+    "expert": "Tom Nguyen",
+    "created_at": "2026-06-12T12:05:00Z"
+  },
+  {
+    "question_id": "H3",
+    "answer_text": "The Q3 settlement-reconciliation milestone (LED-450) is blocked because the Payment-to-Ledger reconciliation boundary has no assigned owner, so the team cannot agree where the reconciliation logic should live. It is a cross-cutting ownership dependency surfaced on the roadmap and in standup; the work is stalled at a stub (commit a14) pending that decision.",
+    "root_causes": [
+      "The reconciliation boundary ownership is unassigned",
+      "Cross-cutting ownership dependency, not a sibling feature ticket",
+      "Work is stalled at a stub (commit a14)"
+    ],
+    "key_source_ids": ["wiki:q3-roadmap", "ticket:LED-450", "slack:recon-boundary", "slack:standup-ledger", "commit:a14"],
+    "root_cause_rubric": [
+      {"id": "RC1", "description": "Identifies that the reconciliation milestone is blocked"},
+      {"id": "RC2", "description": "Blocker is the unassigned reconciliation-boundary ownership"},
+      {"id": "RC3", "description": "Recognizes it is a cross-cutting/ownership dependency (recon-boundary, LED-450)"},
+      {"id": "RC4", "description": "Notes the work is stalled / the stub (a14) is incomplete"}
+    ],
+    "expert": "Raj Patel",
+    "created_at": "2026-06-12T12:10:00Z"
+  }
+]

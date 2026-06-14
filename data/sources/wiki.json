@@ -1,0 +1,82 @@
+[
+  {
+    "source_id": "wiki:ownership-matrix",
+    "source_type": "wiki",
+    "title": "Service Ownership Matrix",
+    "body": "Authoritative mapping of services to owning teams and leads. Current state:\n\n| Service | Owning team | Lead |\n| Payment Service | Team Pay | Maya Chen |\n| Ledger Service | Team Books | Raj Patel |\n| Risk Engine | Team Sentinel | Sofia Alvarez |\n| Notification Service | Team Comms | Tom Nguyen |\n\nCross-service boundaries:\n| Payment <-> Ledger reconciliation | TBD / shared | unassigned (see #arch discussion) |\n\nNote: this page reflects the current owner only. For ownership changes and prior owners, consult the corresponding transfer ticket. Last reviewed after the most recent transfer.",
+    "service": null,
+    "tags": ["ownership", "teams", "matrix", "reconciliation"],
+    "created_at": "2026-02-20T10:00:00Z",
+    "author": "platform-eng"
+  },
+  {
+    "source_id": "wiki:service-architecture",
+    "source_type": "wiki",
+    "title": "FinFlow Service Architecture",
+    "body": "FinFlow processes a payment through four services. Request flow for a charge:\n1. Payment Service receives the charge request and orchestrates the transaction.\n2. Payment calls Risk Engine for an inline fraud score before authorizing.\n3. On approval, Payment writes the transaction to Ledger Service for settlement.\n4. Ledger emits an event; Notification Service consumes it and sends the receipt.\n\nRisk Engine additionally reads historical data from Ledger to inform scoring. Ledger is the foundational system of record. Notification is fully event-driven and decoupled via the event bus.",
+    "service": null,
+    "tags": ["architecture", "data-flow", "dependencies"],
+    "created_at": "2026-01-05T10:00:00Z",
+    "author": "platform-eng"
+  },
+  {
+    "source_id": "wiki:adr-001-async-settlement",
+    "source_type": "wiki",
+    "title": "ADR-001: Asynchronous Settlement in Ledger",
+    "body": "Status: Accepted (January 2026).\n\nContext: Settlement throughput was constrained because each charge wrote to the ledger synchronously on the request path, coupling payment latency to ledger write latency.\n\nDecision: Move settlement to an asynchronous pipeline. The charge is acknowledged once accepted; the ledger entry is written shortly after by a background settler.\n\nConsequences: Substantially higher throughput and lower payment latency. Introduces an eventual-consistency window between charge acknowledgement and the durable ledger entry. Because settlement work may be retried, a dedicated idempotency mechanism is required to avoid double-posting during retries (tracked separately).",
+    "service": "Ledger",
+    "tags": ["adr", "settlement", "async", "throughput", "consistency"],
+    "created_at": "2026-01-12T10:00:00Z",
+    "author": "Raj Patel"
+  },
+  {
+    "source_id": "wiki:adr-002-inline-risk",
+    "source_type": "wiki",
+    "title": "ADR-002: Inline Synchronous Risk Scoring",
+    "body": "Status: Accepted (January 2026).\n\nContext: Fraud must be blocked before a charge is authorized, not after.\n\nDecision: Risk scoring runs inline and synchronously on the payment path, with a 200ms latency budget. A charge is not authorized until a score is returned.\n\nConsequences: Fraud is blocked pre-authorization. The payment path becomes sensitive to Risk Engine availability and latency: if scoring is slow or times out, the payment path must decide how to handle it (e.g., retry within budget). Callers integrating with the scoring client should account for the latency budget.",
+    "service": "Payment",
+    "tags": ["adr", "risk", "inline", "latency", "fraud"],
+    "created_at": "2026-01-18T10:00:00Z",
+    "author": "Sofia Alvarez"
+  },
+  {
+    "source_id": "wiki:adr-003-notif-eventbus",
+    "source_type": "wiki",
+    "title": "ADR-003: Notification Delivery via Event Bus",
+    "body": "Status: Accepted (February 2026).\n\nContext: Notifications were tightly coupled to Payment and Ledger. We want decoupling and resilience.\n\nDecision: Deliver notifications via a shared event bus. Delivery semantics are at-least-once.\n\nConsequences: Producers and consumers are decoupled and resilient to transient outages. Because delivery is at-least-once, the same event may be delivered more than once; consumers MUST deduplicate (e.g., by event id) to remain idempotent. Any consumer that does not dedup will emit duplicates under redelivery.",
+    "service": "Notification",
+    "tags": ["adr", "notification", "event-bus", "at-least-once", "dedup"],
+    "created_at": "2026-02-02T10:00:00Z",
+    "author": "Tom Nguyen"
+  },
+  {
+    "source_id": "wiki:adr-004-ledger-idempotency",
+    "source_type": "wiki",
+    "title": "ADR-004: Ledger Settlement Idempotency Keys",
+    "body": "Status: Accepted (January 2026).\n\nContext: With asynchronous settlement (ADR-001), settlement work can be retried after partial failures or timeouts. Without protection, a retried settlement can post the same entry twice.\n\nDecision: Every settlement carries an idempotency key. The ledger records applied keys and rejects a second application of the same key, so a retry is a no-op.\n\nConsequences: Double-posting is prevented as long as the idempotency check is actually enforced on the write path. Any code path that bypasses or disables the check reopens the double-posting risk.",
+    "service": "Ledger",
+    "tags": ["adr", "idempotency", "settlement", "double-posting"],
+    "created_at": "2026-01-20T10:00:00Z",
+    "author": "Raj Patel"
+  },
+  {
+    "source_id": "wiki:q3-roadmap",
+    "source_type": "wiki",
+    "title": "Q3 Engineering Roadmap",
+    "body": "Q3 milestones and their dependencies.\n\n1. Fraud-scoring v2 (owner: Team Sentinel, ticket RISK-240). depends-on: LED-430 (Ledger historical data export). Cannot start model training until historical export is available.\n\n2. Settlement reconciliation (owner: Team Books, ticket LED-450). depends-on: a clear owner for the Payment<->Ledger reconciliation boundary. Blocked pending that decision.\n\n3. Notification batching (owner: Team Comms, ticket NOT-300). In progress.\n\nTracking note: dependencies marked 'depends-on' must be resolved before the milestone can progress; follow the linked ticket for status.",
+    "service": null,
+    "tags": ["roadmap", "q3", "milestones", "dependencies", "depends-on"],
+    "created_at": "2026-05-28T10:00:00Z",
+    "author": "platform-eng"
+  },
+  {
+    "source_id": "wiki:incident-runbook",
+    "source_type": "wiki",
+    "title": "Incident Response Runbook",
+    "body": "Standard procedure for production incidents.\n1. Declare the incident and open a war-room thread.\n2. Establish the blast radius and timeline of first occurrence.\n3. Review recent changes to the affected service: deploys, configuration changes, and recently merged commits. A surprising number of incidents trace to a recent change rather than an external dependency.\n4. Correlate with monitoring and upstream/downstream behavior.\n5. Open an RCA ticket capturing the timeline, contributing factors, and the corrective action.",
+    "service": null,
+    "tags": ["runbook", "incident", "rca", "process"],
+    "created_at": "2026-01-08T10:00:00Z",
+    "author": "platform-eng"
+  }
+]

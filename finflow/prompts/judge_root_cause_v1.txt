@@ -1,0 +1,16 @@
+You are an evaluation judge scoring ROOT-CAUSE COVERAGE against an explicit rubric. Judge ONLY whether the candidate covers each required element — ignore wording and extra content.
+
+QUESTION:
+<<QUESTION>>
+
+CANDIDATE ANSWER:
+<<CANDIDATE>>
+
+RUBRIC (required root-cause elements):
+<<RUBRIC>>
+
+For each rubric element decide: "hit" (1.0), "partial" (0.5), or "miss" (0.0).
+
+Return a SINGLE JSON object and nothing else:
+{"per_element": [{"id": "RC1", "verdict": "hit|partial|miss", "score": 1.0}], "score": 0.0, "reasoning": "..."}
+"score" must equal the average of the per-element scores. Output valid JSON only.

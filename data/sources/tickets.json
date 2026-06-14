@@ -1,0 +1,142 @@
+[
+  {
+    "source_id": "ticket:LED-412",
+    "source_type": "ticket",
+    "title": "Settlement double-posting under retry",
+    "body": "Status: Closed (fixed)\nReporter: Lena Fischer\nAssignee: Raj Patel\n\nDuring v2.5 staging tests we reproduced a case where a settlement is applied twice when the settler retries after a timeout. The idempotency protection described in ADR-004 is not being enforced on this path, so the retry posts a second entry. This is a release blocker for the v2.5 settlement work (PAY-501) — we should not ship until the key is enforced and verified in staging.\n\nComment (Raj Patel): Confirmed the applied-key check was being skipped for the async settler path. Fix in progress.\nComment (Lena Fischer): Re-tested after the fix — retries are now no-ops. Verified in staging.",
+    "service": "Ledger",
+    "tags": ["idempotency", "settlement", "double-posting", "release-blocker", "adr-004", "staging"],
+    "created_at": "2026-05-06T09:00:00Z",
+    "author": "Lena Fischer"
+  },
+  {
+    "source_id": "ticket:PAY-501",
+    "source_type": "ticket",
+    "title": "Payment v2.5 settlement release",
+    "body": "Status: Shipped (later than planned)\nAssignee: Maya Chen\n\nRelease tracker for the v2.5 settlement changes. Original target: mid-May.\n\nblocked-by: LED-412\n\nComment (Maya Chen): Holding the release — we found a blocker in staging that we will not ship around. Will revise the date once it is resolved and verified.\nComment (Maya Chen): Blocker resolved and verified; cutting the release now. Final ship date is two weeks past the original target.",
+    "service": "Payment",
+    "tags": ["release", "v2.5", "settlement", "blocked"],
+    "created_at": "2026-05-01T09:00:00Z",
+    "author": "Maya Chen"
+  },
+  {
+    "source_id": "ticket:PAY-530",
+    "source_type": "ticket",
+    "title": "RCA: duplicate charges in production (June 3)",
+    "body": "Status: Resolved\nIncident date: 2026-06-03\nAssignee: Maya Chen\n\nTimeline: A subset of customers were charged twice within a short window. Charges correlated with a spike in Risk Engine scoring timeouts, which led the payment path to retry (see RISK-220). Under normal conditions a retry should be harmless.\n\nInvestigation: We are reviewing recent changes to the settlement hot path; a recent performance-oriented change is under review as a contributing factor. Corrective action tracked in PAY-540.\n\nComment (Arjun Rao): The retries themselves are expected behavior under timeouts; the open question is why a retry resulted in a second charge.",
+    "service": "Payment",
+    "tags": ["rca", "incident", "duplicate-charge", "retry", "settlement"],
+    "created_at": "2026-06-03T18:00:00Z",
+    "author": "Maya Chen"
+  },
+  {
+    "source_id": "ticket:RISK-220",
+    "source_type": "ticket",
+    "title": "Risk Engine scoring timeouts under load; add client retry",
+    "body": "Status: Done\nAssignee: Marco Rossi\n\nUnder peak load the inline scoring client (see ADR-002) intermittently exceeds its latency budget and times out, causing payment authorizations to fail. To improve resilience we added a retry on timeout in the scoring client on the payment side.\n\nComment (Marco Rossi): Retry on timeout deployed. This reduces user-facing auth failures during Risk slowness.",
+    "service": "Risk Engine",
+    "tags": ["timeout", "retry", "scoring", "latency", "adr-002"],
+    "created_at": "2026-05-22T09:00:00Z",
+    "author": "Marco Rossi"
+  },
+  {
+    "source_id": "ticket:NOT-310",
+    "source_type": "ticket",
+    "title": "RCA: duplicate notifications (June 9)",
+    "body": "Status: Resolved\nIncident date: 2026-06-09\nAssignee: Tom Nguyen\n\nTimeline: Customers received duplicate receipt notifications. The notification consumer reads from the at-least-once event bus (ADR-003), so the same event can be delivered more than once. Under normal operation the consumer should collapse redeliveries.\n\nInvestigation: A recent change to the consumer is under review as a contributing factor. Corrective action tracked in NOT-320.\n\nComment (Hana Kim): Redelivery is expected on this bus; the question is why redeliveries were no longer being collapsed.",
+    "service": "Notification",
+    "tags": ["rca", "incident", "duplicate-notification", "event-bus", "dedup", "adr-003"],
+    "created_at": "2026-06-09T17:00:00Z",
+    "author": "Tom Nguyen"
+  },
+  {
+    "source_id": "ticket:NOT-300",
+    "source_type": "ticket",
+    "title": "Notification batching release",
+    "body": "Status: In progress (behind schedule)\nAssignee: Hana Kim\n\nBatch low-priority notifications to reduce send volume. Target was early June.\n\nComment (Tom Nguyen): We are behind on this. The team was pulled onto an urgent dedup fix (NOT-320) following the June 9 incident, and batching work is paused until that lands.\nComment (Hana Kim): Will resume once NOT-320 ships.",
+    "service": "Notification",
+    "tags": ["release", "batching", "behind-schedule"],
+    "created_at": "2026-05-25T09:00:00Z",
+    "author": "Hana Kim"
+  },
+  {
+    "source_id": "ticket:RISK-240",
+    "source_type": "ticket",
+    "title": "Q3 milestone: Fraud-scoring v2",
+    "body": "Status: Blocked\nAssignee: Sofia Alvarez\n\nBuild the v2 fraud-scoring model. Per the Q3 roadmap this milestone depends-on LED-430 (Ledger historical data export); we cannot train the model without the historical dataset.\n\ndepends-on: LED-430\n\nComment (Sofia Alvarez): Blocked. Waiting on the historical export from Team Books before we can begin. Raised in our standup.",
+    "service": "Risk Engine",
+    "tags": ["milestone", "q3", "fraud-scoring", "blocked", "depends-on"],
+    "created_at": "2026-05-29T09:00:00Z",
+    "author": "Sofia Alvarez"
+  },
+  {
+    "source_id": "ticket:LED-450",
+    "source_type": "ticket",
+    "title": "Q3 milestone: Settlement reconciliation",
+    "body": "Status: Blocked\nAssignee: Raj Patel\n\nBuild reconciliation between Payment and Ledger to catch settlement mismatches. Per the Q3 roadmap this milestone depends-on a clear owner for the Payment<->Ledger reconciliation boundary, which is currently unassigned.\n\nComment (Raj Patel): We started a stub but stalled — it is unclear which team owns the boundary, so we cannot agree on where the reconciliation logic should live. Raised in #arch.",
+    "service": "Ledger",
+    "tags": ["milestone", "q3", "reconciliation", "blocked", "ownership"],
+    "created_at": "2026-05-29T09:00:00Z",
+    "author": "Raj Patel"
+  },
+  {
+    "source_id": "ticket:LED-430",
+    "source_type": "ticket",
+    "title": "Ledger historical data export job",
+    "body": "Status: In progress\nAssignee: Lena Fischer\n\nProvide a job that exports historical ledger data for downstream consumers. Known consumer: the fraud-scoring milestone (RISK-240).\n\nComment (Lena Fischer): Export job is partially implemented; not yet producing the full historical dataset. ETA slipping.",
+    "service": "Ledger",
+    "tags": ["export", "historical-data", "in-progress", "dependency"],
+    "created_at": "2026-05-20T09:00:00Z",
+    "author": "Lena Fischer"
+  },
+  {
+    "source_id": "ticket:PAY-540",
+    "source_type": "ticket",
+    "title": "Revert recent settlement hot-path change",
+    "body": "Status: Done\nAssignee: Arjun Rao\nParent: PAY-530\n\nFollow-up to the June 3 incident. A recent performance-oriented change on the settlement hot path is implicated in the duplicate charges. Revert that change and verify retries are safe again — see the commit history for the specific change being reverted.\n\nComment (Arjun Rao): Reverted the implicated change on the settlement hot path. Verified that retries no longer produce a second charge.",
+    "service": "Payment",
+    "tags": ["revert", "incident-followup", "settlement", "hot-path"],
+    "created_at": "2026-06-03T20:00:00Z",
+    "author": "Arjun Rao"
+  },
+  {
+    "source_id": "ticket:NOT-320",
+    "source_type": "ticket",
+    "title": "Re-add deduplication to notification consumer",
+    "body": "Status: Done\nAssignee: Hana Kim\nParent: NOT-310\n\nFollow-up to the June 9 incident. A recent consumer refactor removed the deduplication step; restore idempotent dedup by event id so at-least-once redeliveries are collapsed.\n\nComment (Hana Kim): Dedup restored and verified against replayed events. This pulled the team off the batching work (NOT-300).",
+    "service": "Notification",
+    "tags": ["dedup", "event-bus", "incident-followup"],
+    "created_at": "2026-06-09T19:00:00Z",
+    "author": "Hana Kim"
+  },
+  {
+    "source_id": "ticket:OWN-100",
+    "source_type": "ticket",
+    "title": "Transfer Risk Engine ownership: Team Pay -> Team Sentinel",
+    "body": "Status: Done\nEffective: 2026-02-15\n\nRisk Engine was previously owned by Team Pay. As part of forming a dedicated risk function, ownership transfers to the newly created Team Sentinel, with Sofia Alvarez as the new lead. Update the ownership matrix accordingly.\n\nComment (Maya Chen): Handover complete. Team Pay will continue to own the payment-side scoring client integration only.",
+    "service": "Risk Engine",
+    "tags": ["ownership", "transfer", "team-sentinel", "team-pay", "handover"],
+    "created_at": "2026-02-10T09:00:00Z",
+    "author": "Sofia Alvarez"
+  },
+  {
+    "source_id": "ticket:PAY-505",
+    "source_type": "ticket",
+    "title": "Update receipt wording on payment confirmation",
+    "body": "Status: Closed\nAssignee: Priya Sharma\n\nProduct asked us to reword the payment confirmation receipt for clarity. Copy-only change; no logic affected.\n\nComment (Priya Sharma): Shipped behind the standard release.",
+    "service": "Payment",
+    "tags": ["ui", "copy", "receipt", "cosmetic"],
+    "created_at": "2026-05-12T09:00:00Z",
+    "author": "Priya Sharma"
+  },
+  {
+    "source_id": "ticket:RISK-260",
+    "source_type": "ticket",
+    "title": "Add structured logging to Risk Engine scoring service",
+    "body": "Status: Done\nAssignee: Marco Rossi\n\nReplace ad-hoc log lines in the scoring service with structured logging to improve observability. No behavioral change to scoring or timeouts.\n\nComment (Marco Rossi): Rolled out; dashboards updated.",
+    "service": "Risk Engine",
+    "tags": ["logging", "observability", "tooling"],
+    "created_at": "2026-05-30T09:00:00Z",
+    "author": "Marco Rossi"
+  }
+]

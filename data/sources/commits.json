@@ -1,0 +1,182 @@
+[
+  {
+    "source_id": "commit:a1",
+    "source_type": "commit",
+    "title": "perf: disable idempotency check on settlement hot path",
+    "body": "Settlement throughput is bottlenecked by the per-write idempotency-key lookup. Disable the check on the hot path to cut latency; we can revisit a cheaper guard later.\nFiles: payment/settlement/hotpath.py",
+    "service": "Payment",
+    "tags": ["perf", "idempotency", "settlement", "hot-path"],
+    "created_at": "2026-05-28T15:30:00Z",
+    "author": "Arjun Rao"
+  },
+  {
+    "source_id": "commit:a2",
+    "source_type": "commit",
+    "title": "feat(ledger): add idempotency keys to settlement (ADR-004)",
+    "body": "Implement ADR-004. Each settlement carries an idempotency key; the ledger records applied keys and rejects re-application so retries are no-ops.\nFiles: ledger/settlement/idempotency.py",
+    "service": "Ledger",
+    "tags": ["idempotency", "settlement", "adr-004"],
+    "created_at": "2026-01-22T11:00:00Z",
+    "author": "Raj Patel"
+  },
+  {
+    "source_id": "commit:a3",
+    "source_type": "commit",
+    "title": "feat: retry scoring client on timeout (RISK-220)",
+    "body": "Add a retry-on-timeout to the payment-side risk scoring client so transient Risk Engine slowness doesn't fail authorizations. Implements RISK-220.\nFiles: payment/risk_client.py",
+    "service": "Payment",
+    "tags": ["retry", "timeout", "risk", "scoring", "risk-220"],
+    "created_at": "2026-05-22T14:00:00Z",
+    "author": "Marco Rossi"
+  },
+  {
+    "source_id": "commit:a4",
+    "source_type": "commit",
+    "title": "refactor(notif): simplify event consumer",
+    "body": "Clean up the event consumer: collapse handler layers and streamline the processing loop.\nFiles: consumer.py",
+    "service": "Notification",
+    "tags": ["refactor", "consumer", "event-bus"],
+    "created_at": "2026-06-01T10:00:00Z",
+    "author": "Hana Kim"
+  },
+  {
+    "source_id": "commit:a5",
+    "source_type": "commit",
+    "title": "fix(notif): re-add idempotent dedup to consumer (NOT-320)",
+    "body": "Restore the event-id deduplication that the recent refactor dropped, so at-least-once redeliveries are collapsed. Implements NOT-320.\nFiles: notification/consumer.py",
+    "service": "Notification",
+    "tags": ["dedup", "consumer", "event-bus", "not-320"],
+    "created_at": "2026-06-09T18:30:00Z",
+    "author": "Hana Kim"
+  },
+  {
+    "source_id": "commit:a6",
+    "source_type": "commit",
+    "title": "feat(ledger): asynchronous settlement migration (ADR-001)",
+    "body": "Move settlement off the request path to a background settler per ADR-001.\nFiles: ledger/settlement/async_settler.py",
+    "service": "Ledger",
+    "tags": ["async", "settlement", "adr-001", "migration"],
+    "created_at": "2026-01-25T11:00:00Z",
+    "author": "Raj Patel"
+  },
+  {
+    "source_id": "commit:a7",
+    "source_type": "commit",
+    "title": "feat(payment): inline synchronous risk scoring (ADR-002)",
+    "body": "Call the risk scoring client inline on the payment path before authorization, per ADR-002.\nFiles: payment/authorize.py",
+    "service": "Payment",
+    "tags": ["risk", "inline", "scoring", "adr-002"],
+    "created_at": "2026-01-28T11:00:00Z",
+    "author": "Maya Chen"
+  },
+  {
+    "source_id": "commit:a8",
+    "source_type": "commit",
+    "title": "feat(notif): deliver notifications via event bus (ADR-003)",
+    "body": "Publish/consume notifications over the shared at-least-once event bus per ADR-003.\nFiles: notification/bus.py, notification/consumer.py",
+    "service": "Notification",
+    "tags": ["event-bus", "at-least-once", "adr-003"],
+    "created_at": "2026-02-05T11:00:00Z",
+    "author": "Tom Nguyen"
+  },
+  {
+    "source_id": "commit:a9",
+    "source_type": "commit",
+    "title": "fix(ledger): prevent settlement double-post on retry (LED-412)",
+    "body": "Enforce the idempotency-key check on the async settler path so a retried settlement does not post a second entry. Fixes LED-412.\nFiles: ledger/settlement/async_settler.py",
+    "service": "Ledger",
+    "tags": ["idempotency", "settlement", "double-posting", "led-412", "fix"],
+    "created_at": "2026-05-16T16:00:00Z",
+    "author": "Lena Fischer"
+  },
+  {
+    "source_id": "commit:a10",
+    "source_type": "commit",
+    "title": "chore(payment): v2.5 settlement release prep (PAY-501)",
+    "body": "Version bump and release notes for the v2.5 settlement changes. Tracks PAY-501.\nFiles: payment/CHANGELOG.md, payment/version.py",
+    "service": "Payment",
+    "tags": ["release", "v2.5", "pay-501"],
+    "created_at": "2026-05-18T09:00:00Z",
+    "author": "Maya Chen"
+  },
+  {
+    "source_id": "commit:a11",
+    "source_type": "commit",
+    "title": "feat(notif): notification batching (NOT-300)",
+    "body": "Initial implementation of low-priority notification batching. Work in progress. Tracks NOT-300.\nFiles: notification/batching.py",
+    "service": "Notification",
+    "tags": ["batching", "feature", "wip", "not-300"],
+    "created_at": "2026-05-26T10:00:00Z",
+    "author": "Hana Kim"
+  },
+  {
+    "source_id": "commit:a12",
+    "source_type": "commit",
+    "title": "feat(ledger): historical data export job (LED-430)",
+    "body": "Partial implementation of the historical ledger export job for downstream consumers. Not yet producing the full dataset. Tracks LED-430.\nFiles: ledger/export/historical.py",
+    "service": "Ledger",
+    "tags": ["export", "historical-data", "wip", "led-430"],
+    "created_at": "2026-05-24T10:00:00Z",
+    "author": "Lena Fischer"
+  },
+  {
+    "source_id": "commit:a13",
+    "source_type": "commit",
+    "title": "chore(risk): deploy scoring model v4",
+    "body": "Promote fraud scoring model v4 to production after canary sign-off. No change to scoring control flow or timeout handling.\nFiles: risk/models/registry.py",
+    "service": "Risk Engine",
+    "tags": ["model", "v4", "deploy"],
+    "created_at": "2026-04-10T13:00:00Z",
+    "author": "Marco Rossi"
+  },
+  {
+    "source_id": "commit:a14",
+    "source_type": "commit",
+    "title": "feat(ledger): reconciliation boundary stub (LED-450)",
+    "body": "Add a stub for Payment<->Ledger reconciliation. Incomplete — pending a decision on which team owns the boundary. Tracks LED-450.\nFiles: ledger/reconciliation/stub.py",
+    "service": "Ledger",
+    "tags": ["reconciliation", "stub", "wip", "led-450", "ownership"],
+    "created_at": "2026-05-30T10:00:00Z",
+    "author": "Raj Patel"
+  },
+  {
+    "source_id": "commit:a15",
+    "source_type": "commit",
+    "title": "revert: re-enable idempotency check on settlement hot path (PAY-540)",
+    "body": "Revert the performance change that disabled the settlement idempotency check. Retried settlements must be deduplicated. Tracks PAY-540.\nFiles: payment/settlement/hotpath.py",
+    "service": "Payment",
+    "tags": ["revert", "idempotency", "settlement", "pay-540", "fix"],
+    "created_at": "2026-06-03T19:30:00Z",
+    "author": "Arjun Rao"
+  },
+  {
+    "source_id": "commit:b1",
+    "source_type": "commit",
+    "title": "docs: update Payment service README",
+    "body": "Documentation-only update to the Payment service README: setup steps and links.\nFiles: payment/README.md",
+    "service": "Payment",
+    "tags": ["docs", "readme"],
+    "created_at": "2026-05-19T09:00:00Z",
+    "author": "Priya Sharma"
+  },
+  {
+    "source_id": "commit:b2",
+    "source_type": "commit",
+    "title": "test: add Ledger settlement unit tests",
+    "body": "Add unit-test coverage around settlement entry construction. No production code changes.\nFiles: ledger/tests/test_settlement.py",
+    "service": "Ledger",
+    "tags": ["test", "settlement", "coverage"],
+    "created_at": "2026-05-27T09:00:00Z",
+    "author": "Lena Fischer"
+  },
+  {
+    "source_id": "commit:b3",
+    "source_type": "commit",
+    "title": "chore: bump Notification dependencies",
+    "body": "Routine dependency version bumps for the Notification service. No behavioral change.\nFiles: notification/requirements.txt",
+    "service": "Notification",
+    "tags": ["chore", "dependencies"],
+    "created_at": "2026-05-31T09:00:00Z",
+    "author": "Hana Kim"
+  }
+]

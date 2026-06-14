@@ -1,0 +1,19 @@
+# Keep images lean and secret-free.
+.git
+.gitignore
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+*.egg-info/
+.DS_Store
+
+# Never bake secrets or local state into the image.
+.env
+*.db
+retrieval_snapshots/
+
+# Audit/docs not needed at runtime (kept in repo, excluded from image to slim it).
+*.md
+data/DATASET_DESIGN.md

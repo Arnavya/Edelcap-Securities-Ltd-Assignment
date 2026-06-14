@@ -1,0 +1,142 @@
+[
+  {
+    "source_id": "slack:rel-may-settlement",
+    "source_type": "slack",
+    "title": "#release-payments — v2.5 settlement date",
+    "body": "Maya Chen: Heads up, v2.5 is going to slip. We hit something in staging we won't ship around.\nArjun Rao: How long?\nMaya Chen: Looking like ~2 weeks past the original target. It's tracked in LED-412 — the settlement path can post twice on retry. PAY-501 is blocked on it.\nLena Fischer: Working the fix now, will verify in staging before we call it done.\nMaya Chen: Once it's verified we cut the release. Not before.",
+    "service": "Payment",
+    "tags": ["release", "v2.5", "settlement", "slip", "blocked"],
+    "created_at": "2026-05-07T14:20:00Z",
+    "author": "Maya Chen"
+  },
+  {
+    "source_id": "slack:inc-jun3-charge",
+    "source_type": "slack",
+    "title": "#incidents — duplicate charges in prod (Jun 3)",
+    "body": "Maya Chen: Declaring an incident — customers reporting double charges in the last hour.\nArjun Rao: Risk scoring has been timing out under load, payment path retries on timeout (that's RISK-220). Lines up with the spike.\nMaya Chen: Retries shouldn't double-charge though. What changed recently on our side?\nArjun Rao: Let me check what landed on the settlement path lately.\nMaya Chen: Please do — opening PAY-530 to track the RCA.",
+    "service": "Payment",
+    "tags": ["incident", "duplicate-charge", "retry", "timeout", "rca"],
+    "created_at": "2026-06-03T16:05:00Z",
+    "author": "Maya Chen"
+  },
+  {
+    "source_id": "slack:inc-jun9-notif",
+    "source_type": "slack",
+    "title": "#incidents — duplicate notifications (Jun 9)",
+    "body": "Tom Nguyen: Incident — customers getting duplicate receipts since this morning.\nHana Kim: The bus is at-least-once (ADR-003), so redelivery is normal — the consumer is supposed to dedup those.\nTom Nguyen: Right, so why are dupes getting through now? Did something change in the consumer?\nHana Kim: There was a consumer refactor recently. Let me look at what it touched.\nTom Nguyen: Opening NOT-310 for the RCA.",
+    "service": "Notification",
+    "tags": ["incident", "duplicate-notification", "event-bus", "dedup", "rca"],
+    "created_at": "2026-06-09T15:10:00Z",
+    "author": "Tom Nguyen"
+  },
+  {
+    "source_id": "slack:rel-jun-notif-batch",
+    "source_type": "slack",
+    "title": "#release-notifications — batching status",
+    "body": "Hana Kim: Batching (NOT-300) is slipping. After the Jun 9 incident we all moved onto the dedup fix (NOT-320).\nTom Nguyen: Agreed, dedup takes priority. Batching resumes once NOT-320 is out.\nHana Kim: So the batching release is behind purely because of the reprioritization, not because the feature is stuck.",
+    "service": "Notification",
+    "tags": ["release", "batching", "behind-schedule", "reprioritization"],
+    "created_at": "2026-06-10T11:00:00Z",
+    "author": "Hana Kim"
+  },
+  {
+    "source_id": "slack:design-async-settlement",
+    "source_type": "slack",
+    "title": "#arch — async vs synchronous settlement",
+    "body": "Raj Patel: Proposal: move settlement off the request path to async. Synchronous writes are capping our throughput and adding latency to every charge.\nMaya Chen: The synchronous approach is simpler and strongly consistent though. What do we give up?\nRaj Patel: We accept an eventual-consistency window between charge and ledger entry. The win is throughput and lower payment latency.\nMaya Chen: The risk is double-posting if settlement retries.\nRaj Patel: Yes — we pair this with idempotency keys so retries are safe. That's a hard requirement, not optional.\nMaya Chen: OK, async + idempotency keys it is.",
+    "service": "Ledger",
+    "tags": ["design", "settlement", "async", "synchronous", "tradeoff", "idempotency"],
+    "created_at": "2026-01-10T13:00:00Z",
+    "author": "Raj Patel"
+  },
+  {
+    "source_id": "slack:ownership-risk-transfer",
+    "source_type": "slack",
+    "title": "#eng-announce — Risk Engine ownership",
+    "body": "Maya Chen: Announcement — Risk Engine is moving from Team Pay to the new Team Sentinel, led by Sofia. Tracked in OWN-100.\nSofia Alvarez: Excited to take this on. Team Pay keeps the payment-side scoring client integration; everything else in Risk Engine is ours now.\nMaya Chen: Ownership matrix will be updated to reflect Sentinel as the owner.",
+    "service": "Risk Engine",
+    "tags": ["ownership", "transfer", "announcement", "team-sentinel", "team-pay"],
+    "created_at": "2026-02-12T10:00:00Z",
+    "author": "Maya Chen"
+  },
+  {
+    "source_id": "slack:q3-planning",
+    "source_type": "slack",
+    "title": "#planning — Q3 milestones and blockers",
+    "body": "Sofia Alvarez: For Q3, fraud-scoring v2 (RISK-240) can't start until the Ledger historical export (LED-430) is ready — flagging it as a hard dependency.\nRaj Patel: Reconciliation (LED-450) is stuck too, but for a different reason — nobody owns the Payment<->Ledger boundary, so we can't place the logic.\nTom Nguyen: Batching (NOT-300) is the only one of mine in motion.\nSofia Alvarez: Let's make sure the roadmap shows those depends-on links clearly.",
+    "service": null,
+    "tags": ["planning", "q3", "milestones", "blockers", "dependencies"],
+    "created_at": "2026-05-28T09:30:00Z",
+    "author": "Sofia Alvarez"
+  },
+  {
+    "source_id": "slack:standup-risk",
+    "source_type": "slack",
+    "title": "#team-sentinel — standup",
+    "body": "Sofia Alvarez: Standup — fraud-scoring v2 is still blocked. We're idle on it until Team Books delivers the historical export (LED-430). Nothing we can do on RISK-240 until that lands.\nMarco Rossi: Confirmed, model training needs that dataset first.",
+    "service": "Risk Engine",
+    "tags": ["standup", "fraud-scoring", "blocked", "dependency"],
+    "created_at": "2026-06-02T09:15:00Z",
+    "author": "Sofia Alvarez"
+  },
+  {
+    "source_id": "slack:standup-ledger",
+    "source_type": "slack",
+    "title": "#team-books — standup",
+    "body": "Raj Patel: Standup — reconciliation (LED-450) is stalled. We have a stub but can't move forward because the ownership of the reconciliation boundary is unresolved. Raising again in #arch.\nLena Fischer: Same blocker as last week then.",
+    "service": "Ledger",
+    "tags": ["standup", "reconciliation", "blocked", "ownership"],
+    "created_at": "2026-06-02T09:20:00Z",
+    "author": "Raj Patel"
+  },
+  {
+    "source_id": "slack:recon-boundary",
+    "source_type": "slack",
+    "title": "#arch — who owns Payment<->Ledger reconciliation?",
+    "body": "Raj Patel: Who owns the reconciliation boundary between Payment and Ledger? We need an owner to place the LED-450 logic.\nMaya Chen: It's not really a payment concern once settlement is handed off — feels like a ledger thing.\nRaj Patel: It spans both, though. Books shouldn't unilaterally own a cross-service contract.\nMaya Chen: Agreed it's shared, but 'shared' has meant 'nobody' so far. The matrix still says TBD.\nRaj Patel: So we're stuck until someone actually claims it.",
+    "service": null,
+    "tags": ["arch", "reconciliation", "ownership", "boundary", "unassigned", "tbd"],
+    "created_at": "2026-06-04T13:00:00Z",
+    "author": "Raj Patel"
+  },
+  {
+    "source_id": "slack:risk-timeout-debug",
+    "source_type": "slack",
+    "title": "#team-sentinel — debugging scoring timeouts",
+    "body": "Marco Rossi: Timeouts on the scoring client spike under load. Adding a retry on timeout so payment auths don't fail (RISK-220).\nSofia Alvarez: Fine, but caution the payment team: a retry means the downstream call can run twice. That's only safe if the caller is idempotent.\nMarco Rossi: Good point — as long as their settlement path dedups on retry we're fine.",
+    "service": "Risk Engine",
+    "tags": ["timeout", "retry", "scoring", "idempotency", "caution"],
+    "created_at": "2026-05-21T11:00:00Z",
+    "author": "Marco Rossi"
+  },
+  {
+    "source_id": "slack:notif-dedup-debug",
+    "source_type": "slack",
+    "title": "#team-comms — dedup after the refactor",
+    "body": "Hana Kim: Found it — the recent consumer refactor dropped the dedup step. With an at-least-once bus that means every redelivery goes out as a duplicate.\nTom Nguyen: So the refactor removed the one thing protecting us from redelivery. Re-adding dedup under NOT-320.\nHana Kim: Yep. Restoring the event-id dedup.",
+    "service": "Notification",
+    "tags": ["dedup", "refactor", "event-bus", "duplicate"],
+    "created_at": "2026-06-09T16:30:00Z",
+    "author": "Hana Kim"
+  },
+  {
+    "source_id": "slack:inc-may-latency",
+    "source_type": "slack",
+    "title": "#incidents — payment latency blip (May)",
+    "body": "Arjun Rao: Brief latency spike on payments a few minutes ago, p99 climbed then recovered.\nMaya Chen: Looks like a cold cache after a node restart — warmed up and back to normal. No failed or duplicated charges.\nArjun Rao: Agreed, self-resolved. No action needed.",
+    "service": "Payment",
+    "tags": ["incident", "latency", "resolved", "cache"],
+    "created_at": "2026-05-15T10:40:00Z",
+    "author": "Arjun Rao"
+  },
+  {
+    "source_id": "slack:risk-model-v4-rollout",
+    "source_type": "slack",
+    "title": "#team-sentinel — model v4 rollout",
+    "body": "Marco Rossi: Model v4 is rolling out. Canary metrics look good — precision up slightly, latency unchanged.\nSofia Alvarez: Nice. Sign-off to go to 100%?\nMarco Rossi: Yes, full rollout. No regressions in scoring behavior.",
+    "service": "Risk Engine",
+    "tags": ["model", "v4", "rollout", "canary"],
+    "created_at": "2026-04-10T12:00:00Z",
+    "author": "Marco Rossi"
+  }
+]
