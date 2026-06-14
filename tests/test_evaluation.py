@@ -99,7 +99,7 @@ def test_similarity_judge_parses_and_logs(store, questions):
     jr = judge.similarity(questions["P2"], ans, human)
     assert jr.metric == "answer_similarity"
     assert jr.score == 0.9  # 90/100
-    assert jr.judge_prompt_version == "judge_similarity_v2"
+    assert jr.judge_prompt_version == "judge_similarity_v3"
 
 
 def test_root_cause_judge_uses_rubric(store, questions):

@@ -16,7 +16,7 @@ from ..llm import LLMProvider
 from ..models import Answer, HumanAnswer, JudgeResult, Question
 from ..prompts import load_prompt
 
-SIMILARITY_PROMPT_VERSION = "judge_similarity_v2"
+SIMILARITY_PROMPT_VERSION = "judge_similarity_v3"
 ROOT_CAUSE_PROMPT_VERSION = "judge_root_cause_v1"
 SYSTEM = "You are a strict, consistent evaluation judge. You output only JSON."
 
