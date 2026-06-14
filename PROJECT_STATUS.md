@@ -29,9 +29,9 @@ Release-candidate audit. Status as of P8 completion. **Audit only — no code ch
 - **Canonical evaluation** — full `run_evaluation.py` on `llama-3.3-70b-versatile` across H1–H3. **Not completed** (Groq free-tier daily token cap).
 
 ## Repository inventory
-- Source: **42 Python files** in `finflow/` (~2,620 LOC); **8 prompt templates**; **3 scripts**; **2 dashboard modules** (~377 LOC).
-- Tests: **9 files, 83 tests** (all passing, fully offline via mock/scripted providers, zero API calls).
-  - models 8 · llm 11 · dataset 12 · retrieval 14 · investigation 8 · gap 5 · learning 9 · evaluation 9 · dashboard 7
+- Source: **42 Python files** in `finflow/`; **9 prompt templates**; **3 scripts**; **5 dashboard modules** (read-only `app.py` + interactive `live_app.py` + shared `ui.py`).
+- Tests: **10 files, 90 tests** (all passing, fully offline via mock/scripted providers, zero API calls).
+  - models 8 · llm 11 · dataset 12 · retrieval 18 · investigation 8 · gap 5 · learning 9 · evaluation 9 · dashboard 7 · interactive 3
 - Data: 54 evidence items + 9 questions + 9 human answers (with rubrics + gold evidence).
 - Persistence tables: questions, human_answers, answers, retrieval_snapshots, gap_analyses, learning_events, judge_results, evaluation_runs, runs.
 

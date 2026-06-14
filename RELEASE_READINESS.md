@@ -1,5 +1,7 @@
 # RELEASE_READINESS — FinFlow Reasoning Engine
 
+> **Current state (origin/main):** `judge_similarity_v3` (calibrated similarity judge), an **incident-only soft service-scope** on V2 retrieval, and the **interactive HITL dashboard** (`dashboard/live_app.py`) are shipped; the suite is **90 tests**. This file is a historical snapshot — see `README.md` for current truth.
+
 Release-candidate audit verdict. **Audit only — no code changed.**
 
 ## 1. Is the architecture complete?
@@ -35,7 +37,7 @@ is only directionally supported and remains unverified on the canonical model.**
 
 ## 3. What evidence supports these answers?
 **For "architecture complete":**
-- 83/83 tests passing, fully offline; 42 source files; all phase exit criteria met (PROJECT_STATUS.md).
+- 90/90 tests passing, fully offline; 42 source files; all phase exit criteria met (PROJECT_STATUS.md).
 - Live V1 + gap (70b) and live learning cycle + H2 transfer (8b) executed end-to-end.
 - Dashboard boots headless: HTTP 200, no tracebacks.
 

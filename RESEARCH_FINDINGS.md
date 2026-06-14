@@ -13,7 +13,7 @@ that improve held-out reasoning quality (not just retrieval).
 
 ---
 
-## VERIFIED (deterministic, 83 offline tests, zero API calls)
+## VERIFIED (deterministic, 90 offline tests, zero API calls)
 - **Leakage-free learning (mechanism).** The sanitization gate drops any learning-pattern field sharing a ≥5-gram with the expert answer; the learning schema has no answer field. Asserted by `test_no_verbatim_leak`-style tests and `test_learning`. *Status: VERIFIED.*
 - **Retrieval transfer (mechanism).** Learned generic signals + commit routing surface a previously-missed commit on a held-out twin: H2 V1 excludes `commit:a4`; H2 V2 includes it (`test_h2_transfer_from_p2`). Same for P2 `commit:a1`. *Status: VERIFIED (mechanism), deterministic.*
 - **V2 consumes new evidence.** `evidence_utilization` > 0 when V2 cites newly-retrieved evidence (`test_evidence_utilization_recorded`). *Status: VERIFIED.*

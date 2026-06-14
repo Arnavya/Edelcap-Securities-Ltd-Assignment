@@ -4,10 +4,10 @@ How to reproduce results from a clean clone, and what is vs isn't deterministic.
 
 ## From a clean clone (containerized — recommended)
 ```bash
-git clone <repo> && cd finflow-reasoning-engine
+git clone https://github.com/Arnavya/Edelcap-Securities-Ltd-Assignment && cd Edelcap-Securities-Ltd-Assignment
 cp .env.example .env            # add GROQ_API_KEY (not needed for tests)
 docker compose build
-docker compose --profile tests run --rm tests     # 83 tests, offline, deterministic
+docker compose --profile tests run --rm tests     # 90 tests, offline, deterministic
 docker compose up app                              # dashboard at http://localhost:8501
 docker compose --profile eval run --rm eval        # evaluation (needs key + quota)
 ```
@@ -28,7 +28,7 @@ PYTHONPATH=. streamlit run dashboard/app.py
 - For byte-stable rebuilds, pin exact versions (`pip freeze > requirements.lock`) — not done here to keep the intern scope light.
 
 ## What is deterministic (reproducible)
-- **The full test suite (83 tests).** Uses the mock/scripted providers — no network, no clock, no randomness. Same result every run, host or container.
+- **The full test suite (90 tests).** Uses the mock/scripted providers — no network, no clock, no randomness. Same result every run, host or container.
 - **Retrieval (BM25).** Deterministic given the corpus; stable tie-breaks by `source_id`.
 - **All deterministic metrics:** evidence overlap/recall, V1→V2 deltas, `newly_retrieved/cited`, the leakage gate, relevance scoring.
 - **The dataset.** Versioned JSON; stable IDs.

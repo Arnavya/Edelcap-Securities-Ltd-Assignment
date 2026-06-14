@@ -1,5 +1,7 @@
 # DEMO_SCRIPT — FinFlow Reasoning Engine (2–3 minutes)
 
+> **Current state (origin/main):** `judge_similarity_v3` (calibrated similarity judge), an **incident-only soft service-scope** on V2 retrieval, and the **interactive HITL dashboard** (`dashboard/live_app.py`) are shipped; the suite is **90 tests**. This file is a historical snapshot — see `README.md` for current truth.
+
 Goal: show the **learning loop** (V1 → expert → learn → V2) and the **dashboard**,
 honestly framed: a working mechanism with directional evidence, not a proven claim.
 
@@ -55,21 +57,21 @@ Screen: **Retrieved Evidence** (newly-retrieved flag on the commit) → **V2 Ans
 ## 2:10–2:40 · Metrics & honesty
 Screen: **Metrics & Gates** + **Learning Trend** chart.
 > "Four gates: held-out generalization, ablation attribution, leakage-free learning,
-> same-question improvement. **Be clear:** mechanisms are verified by 83 tests, the
+> same-question improvement. **Be clear:** mechanisms are verified by 90 tests, the
 > 8B transfer is positive and directional, but the **canonical 70B evaluation hasn't
 > completed** due to API quota — so the central claim is **not yet canonically
 > validated**. The harness is ready; it's one quota-unblocked run away."
 
 ## 2:40–3:00 · Close
 > "End-to-end: investigate, learn leakage-free, generalize, measure — fully dockerized,
-> read-only dashboard, 83 tests. Next: the canonical run, more families, and tighter
+> read-only dashboard, 90 tests. Next: the canonical run, more families, and tighter
 > retrieval signals."
 
 ---
 
 ### Command cheat-sheet
 ```bash
-docker compose --profile tests run --rm tests     # 83 tests
+docker compose --profile tests run --rm tests     # 90 tests
 docker compose up app                              # dashboard
 PYTHONPATH=. python scripts/run_pipeline.py --question P2
 docker compose --profile eval run --rm eval        # full eval (key + quota)

@@ -19,7 +19,7 @@ distilling **generalizable, leakage-free investigative patterns**, and produces 
 
 ### Docker (recommended)
 ```bash
-git clone <repo> && cd finflow-reasoning-engine
+git clone https://github.com/Arnavya/Edelcap-Securities-Ltd-Assignment && cd Edelcap-Securities-Ltd-Assignment
 cp .env.example .env          # set GROQ_API_KEY (not needed for tests)
 docker compose build
 ```
@@ -146,6 +146,22 @@ Writes to the same SQLite the read-only dashboard reads. Needs `GROQ_API_KEY`.
 - ✅ **Directional transfer positive** (`llama-3.1-8b-instant`, P2→H2): held-out blended **+0.325**, ablation **+0.125**, rubric **0.50→0.75**, leakage **PASS**.
 - ⏳ **Canonical 70B evaluation: not completed** (quota); the earlier pre-tuning canonical run failed the gates and has not been re-measured on 70B.
 - ➡️ **Conclusion: validated in mechanism + directionally; not yet canonically (70B) confirmed.**
+
+## Deliverables map (brief → where in the repo)
+| Brief deliverable | Where |
+|---|---|
+| Question capture (Slack-style feed) | `data/feed.json` → `finflow/retrieval/loaders.py`; shown in both dashboards |
+| AI investigation + reasoning trace | `finflow/agents/investigation_agent.py` + `finflow/retrieval/` (BM25) |
+| Human answer capture | `data/human_answers.json`; typed live in `dashboard/live_app.py` |
+| Gap analysis | `finflow/agents/gap_analysis_agent.py` |
+| Learning event creation | `finflow/agents/learning_event_generator.py` + `finflow/evaluation/leakage.py` + `finflow/memory/learning_memory.py` |
+| Improvement demo (V1→V2) | `finflow/orchestrator.py`; `scripts/run_pipeline.py`; dashboards |
+| Dashboard (accuracy / learning trends) | `dashboard/app.py` (read-only) + `dashboard/live_app.py` (interactive) |
+| Evaluation + four gates | `finflow/evaluation/` + `scripts/run_evaluation.py` |
+| Synthetic dataset | `data/sources/*.json` + `data/DATASET_DESIGN.md` |
+| One-pager | `FINAL_ONE_PAGER.md` |
+| Demo (≤3 min) | `DEMO_SCRIPT.md` (run order) — **add your recorded video link here before submitting** |
+| Setup / Docker | this README · `Dockerfile` · `docker-compose.yml` · `DOCKER_GUIDE.md` |
 
 ## Documentation map
 `PROJECT_STATUS.md` · `TECHNICAL_DEBT.md` · `RESEARCH_FINDINGS.md` · `REPO_TREE.md` ·

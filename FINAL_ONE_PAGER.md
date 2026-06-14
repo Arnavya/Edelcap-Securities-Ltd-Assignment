@@ -1,5 +1,7 @@
 # FinFlow — Expert-Learning Organizational Reasoning Engine (One-Pager)
 
+> **Current state (origin/main):** `judge_similarity_v3` (calibrated similarity judge), an **incident-only soft service-scope** on V2 retrieval, and the **interactive HITL dashboard** (`dashboard/live_app.py`) are shipped; the suite is **90 tests**. This file is a historical snapshot — see `README.md` for current truth.
+
 **Project:** INT-AI-01 · **Domain:** AI / Knowledge Management / Engineering Productivity
 
 ## Problem
@@ -25,7 +27,7 @@ metrics + four gates). Pluggable LLM (Groq default + Mock); SQLite persistence; 
 read-only Streamlit dashboard. Fully dockerized.
 
 ## Results (honest — no fabrication)
-- **Verified (83 offline tests, deterministic):** leakage-free generalizable learning;
+- **Verified (90 offline tests, deterministic):** leakage-free generalizable learning;
   retrieval transfer (held-out V2 surfaces a previously-missed commit V1 missed);
   evidence utilization; relevance gating; gate + persistence logic.
 - **Directional (`llama-3.1-8b-instant`, P2→H2, one family):** held-out blended
@@ -49,6 +51,6 @@ families for statistical power; retry/backoff for API limits; optional semantic
 retriever behind the existing interface; sharpen retrieval-signal specificity.
 
 ## Status
-P0–P10 complete. 42 source files, **83 tests passing**, 54 evidence items, 9 questions,
+P0–P10 complete. 42 source files, **90 tests passing**, 54 evidence items, 9 questions,
 Docker verified (611 MB image), dashboard verified (HTTP 200). Engine build-complete;
 research claim awaiting one canonical run.

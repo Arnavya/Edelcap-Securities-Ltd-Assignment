@@ -34,29 +34,31 @@ finflow-reasoning-engine/
 │       ├── slack_threads.json (14)  tickets.json (14)
 │       └── wiki.json (8)            commits.json (18)        = 54 evidence items
 ├── scripts/   run_pipeline.py  run_evaluation.py  seed_db.py
-├── dashboard/ __init__.py  data.py  app.py            (~377 LOC, read-only)
-└── tests/                           # 9 files, 83 tests, ~1,371 LOC
+├── dashboard/ __init__.py  data.py  app.py  live_app.py  ui.py   (read-only + interactive HITL)
+└── tests/                           # 10 files, 90 tests
     ├── conftest.py  helpers.py  __init__.py
     ├── test_models.py          (8)
     ├── test_llm_providers.py   (11)
     ├── test_dataset.py         (12)
-    ├── test_retrieval.py       (14)
+    ├── test_retrieval.py       (18)
     ├── test_investigation.py   (8)
     ├── test_gap_analysis.py    (5)
     ├── test_learning.py        (9)
     ├── test_evaluation.py      (9)
+    ├── test_interactive.py     (3)
     └── test_dashboard.py       (7)
 ```
 
 ## Counts
 | Category | Count |
 |---|---|
-| Python source files (`finflow/`) | 42 (~2,620 LOC) |
-| Prompt templates (`.txt`) | 8 |
+| Python source files (`finflow/`) | 42 |
+| Prompt templates (`.txt`) | 9 |
 | Scripts | 3 |
-| Dashboard modules | 2 (~377 LOC) |
-| Test files | 9 |
-| **Tests** | **83 (all passing, offline)** |
+| Dashboard modules | 5 (read-only `app.py` + interactive `live_app.py` + shared `ui.py`) |
+| Test files | 10 |
+| **Tests** | **90 (all passing, offline)** |
+| Total tracked files (zip contents) | 98 |
 | Evidence items | 54 (14 slack / 14 ticket / 8 wiki / 18 commit) |
 | Questions | 9 (6 primary + 3 held-out) |
 | SQLite tables | 9 |
