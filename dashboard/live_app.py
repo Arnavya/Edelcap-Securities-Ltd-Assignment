@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import streamlit as st
 
+from dashboard import ui
 from finflow.config import load_settings
 from finflow.evaluation.evidence_overlap import compute_overlap
 from finflow.evaluation.improvement import blended
@@ -131,104 +132,129 @@ def _score(model: str, q: Question, run) -> dict | None:
         return {"error": f"{type(exc).__name__}: {exc}"}
 
 
-# --- rendering ---------------------------------------------------------------
+# --- rendering (presentation only; uses dashboard.ui) ------------------------
 
-def _show_answer(ans) -> None:
-    st.write(ans.answer_text or "_(empty)_")
-    if ans.cited_source_ids:
-        st.caption("cited: " + ", ".join(ans.cited_source_ids))
-    with st.expander("reasoning steps"):
-        for i, s in enumerate(ans.reasoning_trace.steps, 1):
-            st.write(f"{i}. ({s.confidence:.2f}) {s.claim}  ·  {s.cited_source_ids}")
+def _sidebar() -> None:
+    st.sidebar.markdown("## 🧭 FinFlow")
+    st.sidebar.caption("Live Learning Loop · human-in-the-loop")
+    st.sidebar.selectbox("Model", MODELS, index=0, key="model_select")
+    st.sidebar.info("`llama-3.1-8b-instant` works now. `llama-3.3-70b-versatile` is "
+                    "higher quality but often daily-quota-blocked.")
+    st.sidebar.caption("Needs GROQ_API_KEY. V2 is *attempted* to be better, not guaranteed.")
 
 
 def render() -> None:
-    st.set_page_config(page_title="FinFlow — Live Learning Loop", layout="wide")
-    st.title("FinFlow — Live Learning Loop (human-in-the-loop)")
-    st.caption("Ask → V1 → your expert answer → the system learns → V2. V2 is *attempted* to be better, not guaranteed.")
+    st.set_page_config(page_title="FinFlow — Live Learning Loop", layout="wide", page_icon="🧭")
+    ui.inject_css()
+    _sidebar()
+    st.title("FinFlow — Live Learning Loop")
+    st.caption("Ask → V1 → your expert answer → the system learns → V2.")
+    has_v1 = st.session_state.get("v1") is not None
+    has_v2 = st.session_state.get("run") is not None
+    ui.demo_flow("V2" if has_v2 else "Expert" if has_v1 else "Question")
 
-    st.sidebar.selectbox("Model", MODELS, index=0, key="model_select")
-    st.sidebar.info("Default `llama-3.1-8b-instant` works now. `llama-3.3-70b-versatile` is higher quality but often daily-quota-blocked.")
-
-    # 1 — question (keyed inputs)
-    st.header("1 · Question")
-    st.radio("Source", ["Existing (P1–H3)", "New (type your own)"], horizontal=True, key="q_source")
-    if st.session_state.get("q_source", "Existing").startswith("Existing"):
-        qs = _questions()
-        st.selectbox("Question", list(qs), format_func=lambda i: f"{i} — {qs[i].text}", key="q_select")
-    else:
-        st.text_input("Your question", key="new_q_text", placeholder="Why did the … incident happen?")
-        st.selectbox("Category (helps match learned patterns)", [f.value for f in QuestionFamily], key="new_q_family")
-
-    st.button("▶ Run V1 investigation", type="primary", on_click=_cb_run_v1)
+    # 1 — question --------------------------------------------------------
+    with st.container(border=True):
+        st.markdown('<div class="ff-title">1 · Question</div>', unsafe_allow_html=True)
+        st.radio("Source", ["Existing (P1–H3)", "New (type your own)"], horizontal=True,
+                 key="q_source", label_visibility="collapsed")
+        if st.session_state.get("q_source", "Existing").startswith("Existing"):
+            qs = _questions()
+            st.selectbox("Question", list(qs), format_func=lambda i: f"{i} — {qs[i].text}", key="q_select")
+        else:
+            st.text_input("Your question", key="new_q_text", placeholder="Why did the … incident happen?")
+            st.selectbox("Category (helps match learned patterns)",
+                         [f.value for f in QuestionFamily], key="new_q_family")
+        st.button("▶ Run V1 investigation", type="primary", on_click=_cb_run_v1)
 
     if st.session_state.get("error"):
         st.error(st.session_state["error"])
-
-    if st.session_state.get("v1") is None:
+    if not has_v1:
         st.info("Enter a question and click **Run V1** to begin.")
         return
 
     q = st.session_state["q"]
-    st.header("2 · V1 answer (baseline)")
-    st.caption(f"question: {q.text}")
-    _show_answer(st.session_state["v1"])
-    st.caption(f"retrieved: {st.session_state['snap1'].source_ids}")
 
-    # 3 — expert answer (keyed)
-    st.header("3 · Your expert answer (ground truth)")
-    stored = _orchestrator(st.session_state.get("model", MODELS[0])).repo.get_human_answer(q.id)
-    if stored:
-        with st.expander("curated expert answer (reference, optional)"):
-            st.write(stored.answer_text)
-    st.text_area("Type the correct expert answer", height=140, key="expert_text")
-    st.button("✦ Learn & generate V2", type="primary", on_click=_cb_run_v2)
+    # 2 — V1 + 3 — expert answer -----------------------------------------
+    col_v1, col_exp = st.columns(2)
+    with col_v1:
+        ui.answer_card("2 · V1 answer (baseline)", st.session_state["v1"].answer_text,
+                       cited=st.session_state["v1"].cited_source_ids, accent=ui.ACCENT_V1,
+                       steps=st.session_state["v1"].reasoning_trace.steps)
+        st.caption("retrieved: " + ", ".join(st.session_state["snap1"].source_ids))
+    with col_exp:
+        with st.container(border=True):
+            st.markdown('<div class="ff-title" style="color:#0f766e">3 · Your expert answer (ground truth)</div>',
+                        unsafe_allow_html=True)
+            stored = _orchestrator(st.session_state.get("model", MODELS[0])).repo.get_human_answer(q.id)
+            if stored:
+                with st.expander("curated reference (optional)"):
+                    st.write(stored.answer_text)
+            st.text_area("Type the correct expert answer", height=150, key="expert_text",
+                         label_visibility="collapsed", placeholder="Type the ground-truth expert answer…")
+            st.button("✦ Learn & generate V2", type="primary", on_click=_cb_run_v2)
 
     run = st.session_state.get("run")
     if not run:
         return
 
-    # 4 — comparison + metrics (from session, computed once in the callback)
-    st.header("4 · V1 → V2 comparison")
+    # 4 — comparison ------------------------------------------------------
+    st.subheader("4 · V1 → V2 comparison")
     c1, c2 = st.columns(2)
     with c1:
-        st.subheader("V1"); _show_answer(run.v1)
+        ui.answer_card("V1 — baseline", run.v1.answer_text, cited=run.v1.cited_source_ids,
+                       accent=ui.ACCENT_V1, steps=run.v1.reasoning_trace.steps)
     with c2:
-        st.subheader("V2 (after learning)"); _show_answer(run.v2)
+        ui.answer_card("V2 — after learning", run.v2.answer_text, cited=run.v2.cited_source_ids,
+                       accent=ui.ACCENT_V2, steps=run.v2.reasoning_trace.steps)
 
-    st.subheader("What the learning changed")
-    a, b, c = st.columns(3)
-    a.metric("newly retrieved (V2)", len(run.newly_retrieved_ids))
-    b.metric("newly cited (V2)", len(run.newly_cited_ids))
     m = st.session_state.get("metrics") or {}
-    if "util" in m:
-        c.metric("evidence utilization", f"{m['util']:.2f}")
-    if run.newly_retrieved_ids:
-        st.caption("newly retrieved: " + ", ".join(run.newly_retrieved_ids))
-
+    st.markdown("**What the learning changed**")
+    cols = st.columns(4)
     if m and "error" not in m:
-        cols = st.columns(3)
-        cols[0].metric("similarity V1→V2", f"{m['sim2']:.2f}", f"{m['sim2'] - m['sim1']:+.2f}")
-        if m.get("has_gold"):
-            cols[1].metric("evidence recall V1→V2", f"{m['ev2']:.2f}", f"{m['ev2'] - m['ev1']:+.2f}")
+        cols[0].metric("similarity", f"{m['sim2']:.2f}", f"{m['sim2'] - m['sim1']:+.2f}")
         if "rc2" in m:
-            cols[2].metric("rubric coverage V1→V2", f"{m['rc2']:.2f}", f"{m['rc2'] - m['rc1']:+.2f}")
-            st.metric("blended V1→V2", f"{blended(m['sim2'], m['rc2']):.2f}",
+            cols[1].metric("rubric coverage", f"{m['rc2']:.2f}", f"{m['rc2'] - m['rc1']:+.2f}")
+        if m.get("has_gold"):
+            cols[2].metric("evidence recall", f"{m['ev2']:.2f}", f"{m['ev2'] - m['ev1']:+.2f}")
+        cols[3].metric("evidence utilization", f"{m.get('util', 0):.2f}")
+        if "rc2" in m:
+            st.metric("blended (similarity + rubric)", f"{blended(m['sim2'], m['rc2']):.2f}",
                       f"{blended(m['sim2'], m['rc2']) - blended(m['sim1'], m['rc1']):+.2f}")
         if m["sim2"] < m["sim1"]:
-            st.warning("V2 did not score higher than V1 here — shown honestly. Learning is generalizable and stochastic; it doesn't guarantee a win every time.")
-    elif m.get("error"):
-        st.caption(f"(judge scoring skipped: {m['error']})")
+            st.warning("V2 did not score higher than V1 here — shown honestly. Learning is "
+                       "generalizable and stochastic; it doesn't guarantee a win every time.")
+    else:
+        cols[0].metric("newly retrieved", len(run.newly_retrieved_ids))
+        cols[1].metric("newly cited", len(run.newly_cited_ids))
+        if m.get("error"):
+            st.caption(f"(judge scoring skipped: {m['error']})")
+    if run.newly_retrieved_ids:
+        ui.html('<span class="ff-muted">newly retrieved: </span>'
+                '<span class="ff-cite">' + ", ".join(run.newly_retrieved_ids) + "</span>")
 
-    with st.expander("Gap analysis"):
-        st.write(run.gap.model_dump() if run.gap else "_none_")
-    with st.expander("Learning event (generalized hints only — leakage-free)"):
-        if run.learning_event:
-            lk = run.learning_event.sanitization
-            st.write(f"leakage gate: {'PASS' if lk.leakage_check_passed else 'FAIL'} · max n-gram overlap {lk.max_ngram_overlap} · patterns dropped {lk.redactions}")
-            for p in run.learning_event.patterns:
-                sig = (" · signals=" + str(p.retrieval_signals)) if p.retrieval_signals else ""
-                st.write(f"- **{p.pattern_type.value}**: {p.hint_text}{sig}")
+    # gap + learning ------------------------------------------------------
+    g1, g2 = st.columns(2)
+    with g1, st.container(border=True):
+        gap = run.gap
+        ui.html('<span class="ff-title">Gap analysis</span> &nbsp;',
+                ui.severity_badge(gap.severity) if gap else "")
+        if gap:
+            st.markdown(f"**Missed evidence:** {gap.missed_evidence_ids or '—'}")
+            st.markdown(f"**Missed root causes:** {gap.missed_root_causes or '—'}")
+            st.markdown(f"**Reasoning gaps:** {gap.reasoning_gaps or '—'}")
+    with g2, st.container(border=True):
+        ev = run.learning_event
+        lk = ev.sanitization if ev else None
+        ui.html('<span class="ff-title">Learning event</span> &nbsp;',
+                ui.passfail(lk.leakage_check_passed) if lk else "")
+        if ev:
+            st.caption(f"max n-gram overlap {lk.max_ngram_overlap} · patterns dropped {lk.redactions} "
+                       "· generalized hints only")
+            for p in ev.patterns:
+                sig = f" · signals={p.retrieval_signals}" if p.retrieval_signals else ""
+                st.markdown(f"- **{p.pattern_type.value}**: {p.hint_text}{sig}")
+
     st.success(f"Persisted run `{run.run_id}` — also visible in the read-only dashboard.")
 
 
