@@ -1,5 +1,11 @@
 # PROJECT_STATUS — FinFlow Expert-Learning Organizational Reasoning Engine
 
+> **Post-release update (origin/main @ da21020):** this document describes the P10 state.
+> Since then two changes shipped — **judge_similarity_v3** (active calibrated similarity
+> judge; MAE 0.55→0.10) and an **incident-only soft service-scope filter on V2 retrieval**
+> — plus the **interactive HITL dashboard** (`dashboard/live_app.py`). Test count is now
+> **90**. See `README.md` (current source of truth).
+
 Release-candidate audit. Status as of P8 completion. **Audit only — no code changed.**
 
 ## Phase status (P0–P8)

@@ -42,9 +42,13 @@ docker compose --profile tests run --rm tests        # or: PYTHONPATH=. pytest
 PYTHONPATH=. python scripts/seed_db.py
 PYTHONPATH=. python scripts/run_pipeline.py --question P2
 
-# dashboard
+# read-only dashboard
 docker compose up app                                 # http://localhost:8501
 # or: PYTHONPATH=. streamlit run dashboard/app.py
+
+# interactive human-in-the-loop dashboard (ask → V1 → expert answer → V2)
+docker run --rm -p 8501:8501 --env-file .env -v finflow-db:/data finflow-reasoning-engine live
+# or: PYTHONPATH=. streamlit run dashboard/live_app.py
 ```
 
 ## Architecture
@@ -65,13 +69,17 @@ Question
   imports a vendor SDK.
 - **Retrieval:** `Retriever` interface + `BM25Retriever` (deterministic; swappable;
   no FAISS). Per-source top-k balancing; soft routing bias; pluggable expansion;
-  persisted, diagnosable snapshots.
+  persisted, diagnosable snapshots. **V2 applies an incident-only soft service-scope:**
+  for `prod_incident` questions, expansion-only evidence from a service other than V1's
+  top result is down-ranked (×0.30, not dropped); other families are unaffected.
 - **Learning:** patterns split into *retrieval signals* and *reasoning heuristics*;
   a deterministic n-gram leakage gate guarantees no verbatim expert text is stored;
   relevance scoring gates which patterns transfer.
-- **Evaluation:** versioned, fully-logged LLM judges (similarity + rubric root-cause)
-  plus deterministic evidence overlap and improvement. Success signal = **rubric
-  coverage + similarity** (blended), not raw source retrieval.
+- **Evaluation:** versioned, fully-logged LLM judges plus deterministic evidence
+  overlap and improvement. **Active similarity judge = `judge_similarity_v3`** (graded
+  partial credit + "share of key claims" rubric); `v1`/`v2` prompts retained for
+  provenance only. Rubric-based root-cause judge. Success signal = **rubric coverage +
+  similarity** (blended), not raw source retrieval.
 - **Persistence:** SQLite (9 tables); the dashboard is strictly read-only over it.
 
 ## Evaluation workflow
@@ -85,7 +93,9 @@ held-out transfer (baseline V1 vs post-learning V2 on the twin), and an ablation
 (V2 with learning stripped). It computes four gates and persists an `EvaluationRun`.
 > The canonical 70B run is currently **quota-blocked**; see Research status.
 
-## Dashboard walkthrough
+## Dashboards
+
+### Read-only — `dashboard/app.py`
 `streamlit run dashboard/app.py` → single page, read-only:
 1. **Question Feed** — all questions (family, held-out flag, run count).
 2. **Retrieved Evidence** — V1 vs V2 table flagging *newly retrieved* / *newly cited*; inspectable retrieval traces (scores, `from_expansion`, matched terms, diagnostics).
@@ -97,12 +107,30 @@ held-out transfer (baseline V1 vs post-learning V2 on the twin), and an ablation
 8. **Metrics & Gates** — central-claim/verdict, per-question scorecard, transfer metrics.
 9. **Learning Trend** — V1 vs V2 blended bar chart.
 
-## Limitations
-- Central research claim **not canonically validated** (Groq free-tier daily token cap blocks the full 70B run).
-- `MockProvider` is for deterministic tests, not a functional offline demo (it returns hash strings, not real answers).
-- Small sample (3 twin families) → illustrative, not statistically robust.
+### Interactive (human-in-the-loop) — `dashboard/live_app.py`
+`PYTHONPATH=. streamlit run dashboard/live_app.py` (or `… finflow-reasoning-engine live`),
+default model `llama-3.1-8b-instant`: pick/type a question → **Run V1** → type the
+expert answer → **Learn & generate V2** → V1/V2 comparison with calibrated metrics.
+Writes to the same SQLite the read-only dashboard reads. Needs `GROQ_API_KEY`.
+
+## Known Limitations
+- Central research claim **not canonically validated** — the `llama-3.3-70b-versatile`
+  evaluation is Groq-quota-blocked; all live numbers are **8B / single-sample / one
+  human-proxy rater** (directional, not statistically robust; 3 twin families).
+- **Service-scope filter is marginal at ×0.30** (~−1 contamination item on P2). The
+  *family gate* (not the down-rank strength) prevents the P4 regression, so the penalty
+  can be strengthened later with no P4 risk.
+- **Base-matched cross-service contamination is unaddressed** — the filter only
+  down-ranks *expansion-only* items; off-service evidence matching the question's own
+  terms still surfaces.
+- **Judge v3 mild over-generosity** on partially-wrong answers (e.g. ~0.58 vs human
+  ~0.45) — far better than v2's collapse, tunable later.
+- **Out-of-distribution questions can confabulate** — no abstention/low-confidence
+  path; the tokenizer treats `deploy` ≠ `deployment`.
+- `MockProvider` is a deterministic test harness, not a functional offline demo.
 - Synthetic dataset is authored to *exhibit* the learning gap (see `TECHNICAL_DEBT.md`).
-- LLM judge variance; live numbers are not byte-reproducible.
+- Some historical docs (`FINAL_*`, parts of `PROJECT_STATUS.md`/`RESEARCH_FINDINGS.md`)
+  describe the pre-v3/pre-filter state; **this README is the current source of truth.**
 
 ## Future work
 - Run the canonical 70B post-P7.1 evaluation (dev-tier key or quota reset).
@@ -112,10 +140,12 @@ held-out transfer (baseline V1 vs post-learning V2 on the twin), and an ablation
 - Tighten retrieval-signal specificity to raise evidence-utilization signal-to-noise.
 
 ## Research status
-- ✅ **Mechanisms verified** (83 offline tests): leakage-free generalizable learning, retrieval transfer, evidence utilization, relevance gating.
+- ✅ **Mechanisms verified** (90 offline tests): leakage-free generalizable learning, retrieval transfer, evidence utilization, relevance gating, judge calibration, incident-only service-scope.
+- ✅ **Judge calibration (v3) shipped** (`479db31`): similarity MAE vs human **0.55→0.10**; the P4 near-identical-answer case **0.00→0.90**.
+- ✅ **Incident-only soft service-scope shipped** (`da21020`): **no P4 regression** (0.60→0.60), average v3 similarity non-regressing (0.596 ≥ 0.590), modest P2 contamination reduction.
 - ✅ **Directional transfer positive** (`llama-3.1-8b-instant`, P2→H2): held-out blended **+0.325**, ablation **+0.125**, rubric **0.50→0.75**, leakage **PASS**.
-- ⏳ **Canonical 70B post-P7.1 evaluation: not completed** (quota). The only completed *canonical* run was **pre-P7.1** and failed the quality gates (generalization 0.021, ablation 0.013, same-question −0.151; leakage PASS).
-- ➡️ **Conclusion: the central claim is not yet canonically validated.** Promising mechanism + directional evidence; awaiting the canonical measurement.
+- ⏳ **Canonical 70B evaluation: not completed** (quota); the earlier pre-tuning canonical run failed the gates and has not been re-measured on 70B.
+- ➡️ **Conclusion: validated in mechanism + directionally; not yet canonically (70B) confirmed.**
 
 ## Documentation map
 `PROJECT_STATUS.md` · `TECHNICAL_DEBT.md` · `RESEARCH_FINDINGS.md` · `REPO_TREE.md` ·

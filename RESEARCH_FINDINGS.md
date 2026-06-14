@@ -1,5 +1,11 @@
 # RESEARCH_FINDINGS — FinFlow Reasoning Engine
 
+> **Post-release update (origin/main @ da21020):** findings below predate the judge
+> recalibration and the retrieval filter. Since then: **judge_similarity_v3** is the active
+> similarity judge (MAE vs human 0.55→0.10; P4 0.00→0.90), and an **incident-only soft
+> service-scope** on V2 retrieval shipped (no P4 regression; avg v3 similarity non-regressing).
+> The canonical 70B confirmation is still pending (quota). See `README.md` for current state.
+
 All measured results to date, classified **VERIFIED** (deterministic / reproducible),
 **DIRECTIONAL** (single non-canonical live run), or **UNVERIFIED** (not yet measured).
 **Central claim:** the system learns generalizable, leakage-free investigative methods
