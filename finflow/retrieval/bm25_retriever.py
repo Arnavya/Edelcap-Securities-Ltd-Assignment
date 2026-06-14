@@ -28,6 +28,7 @@ from .retriever import Retriever
 
 _TOKEN_RE = re.compile(r"[a-z0-9]+")
 DEFAULT_ROUTING_BOOST = 0.5
+OFFSERVICE_PENALTY = 0.30  # soft down-rank for expansion-only off-service items (V2)
 
 # Lightweight stopword list. Removing these keeps BM25 focused on content terms and
 # prevents question boilerplate ("what/why/the/did") from spuriously matching docs —
@@ -80,6 +81,7 @@ class BM25Retriever(Retriever):
         expansion_terms: list[str] | None = None,
         routing_sources: list[SourceType] | None = None,
         source_filter: list[SourceType] | None = None,
+        service_scope: str | None = None,
         max_results: int | None = None,
         question_id: str | None = None,
         version: str = "V1",
@@ -120,6 +122,7 @@ class BM25Retriever(Retriever):
         allowed = set(source_filter) if source_filter else None
         per_source: dict[SourceType, list[tuple[float, int]]] = {}
         candidate_counts: dict[str, int] = {}
+        down_ranked = 0  # expansion-only off-service items soft-penalized by service_scope
         for idx, raw_score in enumerate(scores):
             item = self._items[idx]
             if allowed is not None and item.source_type not in allowed:
@@ -127,6 +130,15 @@ class BM25Retriever(Retriever):
             score = float(raw_score)
             if score <= 0.0:
                 continue
+            # Minimal V2 cross-service guard: SOFT down-rank (not drop) expansion-ONLY
+            # results whose service differs from the dominant V1 service. Base-matched
+            # and service=None items are never penalized.
+            if service_scope is not None:
+                doc = self._token_sets[idx]
+                expansion_only = (not (base_set & doc)) and bool(exp_set & doc)
+                if expansion_only and item.service is not None and item.service != service_scope:
+                    score *= OFFSERVICE_PENALTY
+                    down_ranked += 1
             if routing and item.source_type in routing:
                 score *= 1.0 + self._routing_boost
             per_source.setdefault(item.source_type, []).append((score, idx))
@@ -171,6 +183,11 @@ class BM25Retriever(Retriever):
             diagnostics.notes.append(
                 f"routing bias x{1.0 + self._routing_boost:.2f} on "
                 + ", ".join(s.value for s in routing)
+            )
+        if service_scope is not None:
+            diagnostics.notes.append(
+                f"v2 service-scoped to '{service_scope}'; down-ranked {down_ranked} "
+                f"off-service expansion item(s) x{OFFSERVICE_PENALTY}"
             )
 
         return RetrievalSnapshot(

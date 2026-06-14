@@ -136,6 +136,56 @@ def test_source_filter_is_a_hard_restriction(retriever):
 
 # --- Persisted snapshots -----------------------------------------------------
 
+# --- minimal V2 service-scope filter (cross-incident contamination guard) -----
+
+# Expansion terms surface: a1/a15 (Payment), a4 (Notification, "refactor"),
+# adr-004 (Ledger, "idempotency"), q3-roadmap (service=None, "roadmap").
+SCOPE_EXPANSION = ["idempotency", "disable", "perf", "refactor", "revert", "roadmap"]
+
+
+from finflow.retrieval.bm25_retriever import OFFSERVICE_PENALTY
+
+
+def _scores(snap):
+    return {i.source_id: i.score for i in snap.items}
+
+
+def test_service_scope_downranks_offservice_expansion(retriever):
+    """SOFT down-rank (not drop): off-service expansion items are penalized, in-scope unchanged."""
+    base = _scores(retriever.search(P2_QUERY, expansion_terms=SCOPE_EXPANSION, k_per_source=20))
+    scoped = _scores(retriever.search(P2_QUERY, expansion_terms=SCOPE_EXPANSION, service_scope="Payment", k_per_source=20))
+    # off-service expansion-only item is present but down-ranked, NOT dropped
+    assert "commit:a4" in scoped and scoped["commit:a4"] < base["commit:a4"]
+    assert scoped["commit:a4"] == pytest.approx(base["commit:a4"] * OFFSERVICE_PENALTY, abs=1e-3)
+    # in-scope item unchanged
+    assert scoped["commit:a1"] == base["commit:a1"]
+    # service=None doc unchanged/kept
+    assert "wiki:q3-roadmap" in scoped
+    assert any("down-ranked" in n for n in retriever.search(
+        P2_QUERY, expansion_terms=SCOPE_EXPANSION, service_scope="Payment", k_per_source=20).diagnostics.notes)
+
+
+def test_service_scope_inverse(retriever):
+    base = _scores(retriever.search(P2_QUERY, expansion_terms=SCOPE_EXPANSION, k_per_source=20))
+    scoped = _scores(retriever.search(P2_QUERY, expansion_terms=SCOPE_EXPANSION, service_scope="Notification", k_per_source=20))
+    assert scoped["commit:a1"] < base["commit:a1"]      # Payment off-service -> down-ranked
+    assert scoped["commit:a4"] == base["commit:a4"]      # Notification in-scope -> unchanged
+
+
+def test_service_scope_none_is_noop(retriever):
+    a = retriever.search(P2_QUERY, expansion_terms=SCOPE_EXPANSION, k_per_source=20)
+    b = retriever.search(P2_QUERY, expansion_terms=SCOPE_EXPANSION, service_scope=None, k_per_source=20)
+    assert [(i.source_id, i.score) for i in a.items] == [(i.source_id, i.score) for i in b.items]
+
+
+def test_service_scope_does_not_penalize_base_matches(retriever):
+    """An off-service item that matches the QUESTION's own terms (base-matched) is NOT penalized."""
+    base = _scores(retriever.search(P2_QUERY, expansion_terms=SCOPE_EXPANSION, k_per_source=20))
+    scoped = _scores(retriever.search(P2_QUERY, expansion_terms=SCOPE_EXPANSION, service_scope="Payment", k_per_source=20))
+    # inc-jun9-notif (Notification, off-service) is base-matched via "duplicate"/"incident" -> unchanged
+    assert scoped["slack:inc-jun9-notif"] == base["slack:inc-jun9-notif"]
+
+
 def test_snapshot_roundtrip(retriever, tmp_path):
     snap = retriever.search(P2_QUERY, question_id="P2", version="V2", expansion_terms=P2_EXPANSION)
     path = save_snapshot(snap, tmp_path)

@@ -13,6 +13,12 @@ case "$mode" in
     exec streamlit run dashboard/app.py \
       --server.port "${PORT:-8501}" --server.address 0.0.0.0 --server.headless true
     ;;
+  live)
+    # interactive human-in-the-loop page (needs GROQ_API_KEY)
+    python scripts/seed_db.py || true
+    exec streamlit run dashboard/live_app.py \
+      --server.port "${PORT:-8501}" --server.address 0.0.0.0 --server.headless true
+    ;;
   eval)
     exec python scripts/run_evaluation.py "$@"
     ;;

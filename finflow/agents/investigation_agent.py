@@ -65,6 +65,7 @@ class InvestigationAgent:
         k_per_source: int = 4,
         expansion_terms: list[str] | None = None,
         routing_sources: list[SourceType] | None = None,
+        service_scope: str | None = None,
         guidance_text: str = "",
         injected_pattern_ids: list[str] | None = None,
     ) -> tuple[Answer, RetrievalSnapshot]:
@@ -73,6 +74,7 @@ class InvestigationAgent:
             k_per_source=k_per_source,
             expansion_terms=expansion_terms,
             routing_sources=routing_sources,
+            service_scope=service_scope,
             question_id=question.id,
             version=version.value,
         )
