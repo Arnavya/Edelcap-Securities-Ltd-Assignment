@@ -17,11 +17,11 @@ from dashboard import data, ui
 
 
 def _yn(v: bool) -> str:
-    return "✅" if v else "—"
+    return "Yes" if v else "—"
 
 
 def _sidebar(feed) -> None:
-    st.sidebar.markdown("## 🧭 FinFlow")
+    st.sidebar.markdown("## FinFlow")
     st.sidebar.caption("Expert-Learning Organizational Reasoning Engine")
     st.sidebar.markdown("**Read-only** view of persisted artifacts.")
     st.sidebar.metric("Questions", len(feed))
@@ -30,7 +30,7 @@ def _sidebar(feed) -> None:
 
 
 def render() -> None:
-    st.set_page_config(page_title="FinFlow Reasoning Engine", layout="wide", page_icon="🧭")
+    st.set_page_config(page_title="FinFlow Reasoning Engine", layout="wide")
     ui.inject_css()
     st.title("FinFlow — Reasoning Engine")
     st.caption("Question → V1 → Expert → Gap → Learning → V2 → Metrics · read-only over SQLite")
@@ -62,7 +62,7 @@ def render() -> None:
             ui.badge("held-out", "#7c3aed") if q_meta["held_out"] else "",
             f'&nbsp; <b>{q_meta["text"]}</b>')
 
-    tab_inv, tab_gap, tab_eval = st.tabs(["🔍 Investigation", "🧩 Gap & Learning", "📊 Evaluation"])
+    tab_inv, tab_gap, tab_eval = st.tabs(["Investigation", "Gap & Learning", "Evaluation"])
 
     # --- Investigation -----------------------------------------------------
     with tab_inv:

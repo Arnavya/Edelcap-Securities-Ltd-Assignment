@@ -14,6 +14,6 @@ venv/
 *.db
 retrieval_snapshots/
 
-# Audit/docs not needed at runtime (kept in repo, excluded from image to slim it).
+# Docs not needed at runtime (kept in repo, excluded from image to slim it).
 *.md
-data/DATASET_DESIGN.md
+*.pdf

@@ -135,7 +135,7 @@ def _score(model: str, q: Question, run) -> dict | None:
 # --- rendering (presentation only; uses dashboard.ui) ------------------------
 
 def _sidebar() -> None:
-    st.sidebar.markdown("## 🧭 FinFlow")
+    st.sidebar.markdown("## FinFlow")
     st.sidebar.caption("Live Learning Loop · human-in-the-loop")
     st.sidebar.selectbox("Model", MODELS, index=0, key="model_select")
     st.sidebar.info("`llama-3.1-8b-instant` works now. `llama-3.3-70b-versatile` is "
@@ -144,7 +144,7 @@ def _sidebar() -> None:
 
 
 def render() -> None:
-    st.set_page_config(page_title="FinFlow — Live Learning Loop", layout="wide", page_icon="🧭")
+    st.set_page_config(page_title="FinFlow — Live Learning Loop", layout="wide")
     ui.inject_css()
     _sidebar()
     st.title("FinFlow — Live Learning Loop")
@@ -192,7 +192,7 @@ def render() -> None:
                     st.write(stored.answer_text)
             st.text_area("Type the correct expert answer", height=150, key="expert_text",
                          label_visibility="collapsed", placeholder="Type the ground-truth expert answer…")
-            st.button("✦ Learn & generate V2", type="primary", on_click=_cb_run_v2)
+            st.button("Learn & generate V2", type="primary", on_click=_cb_run_v2)
 
     run = st.session_state.get("run")
     if not run:
